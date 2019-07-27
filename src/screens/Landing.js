@@ -15,13 +15,10 @@ export default class Landing extends Component {
     super(props);
   }
   startOnboarding() {
-    console.log('create temp');
+    console.log('create temporary account');
     socket.emit('user.createTempAccount', err => {
-      console.log(err);
       if (err) {
         Alert.alert(err);
-      } else {
-        Alert.alert('Welcome!');
       }
     });
   }

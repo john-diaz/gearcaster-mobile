@@ -35,7 +35,7 @@ export default class App extends React.Component {
       'lucida-grande-bold': require('./assets/fonts/LucidaGrandeBold.ttf')
     }).then(() => {
       // socket events
-      socket.on('connect', this.authenticate);
+      socket.on('connect', () => this.authenticate());
       socket.on('userData', (data) => {
         if (data) {
           // set the user credentials
@@ -57,7 +57,6 @@ export default class App extends React.Component {
   }
   async authenticate() {
     const credentialsJSON = await AsyncStorage.getItem("userCredentials")
-
     if (!credentialsJSON) {
       this.setState({ user: null });
     } else {
