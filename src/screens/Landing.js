@@ -2,13 +2,29 @@ import React, { Component } from 'react';
 import {
   View,
   Image,
-  ImageBackground
+  ImageBackground,
+  Alert
 } from 'react-native';
+import socket from '../socket';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, Button } from '../components/custom';
 import globalStyles from '../styles';
 
 export default class Landing extends Component {
+  constructor(props) {
+    super(props);
+  }
+  startOnboarding() {
+    console.log('create temp');
+    socket.emit('user.createTempAccount', err => {
+      console.log(err);
+      if (err) {
+        Alert.alert(err);
+      } else {
+        Alert.alert('Welcome!');
+      }
+    });
+  }
   render() {
     return(
       <ImageBackground
@@ -70,7 +86,7 @@ export default class Landing extends Component {
             </View>
             <Button
               title="ENTER"
-
+              onPress={this.startOnboarding}
               style={{
                 minWidth: 193,
                 minHeight: 41,

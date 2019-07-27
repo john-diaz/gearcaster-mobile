@@ -5,7 +5,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import globalStyles from '../styles';
 import Text from './Text';
 
-
 export default class AppButton extends Component {
   state = {
     activePress: false,
@@ -14,17 +13,18 @@ export default class AppButton extends Component {
   constructor(props) {
     super(props);
   }
-  async componentDidMount() {
+  componentDidMount() {
     let buttonPress = new Audio.Sound();
     let buttonRelease = new Audio.Sound();
 
-    try {
+    /* load the button sounds synchronously within an anonymous async function */
+    // this prevents us from making the 'componentDidMount' function async,
+    // which can cause memory leaks
+    (async () => {
       await buttonPress.loadAsync(require('../../assets/audio/ui/buttonpress.mp3'));
       await buttonRelease.loadAsync(require('../../assets/audio/ui/buttonrelease.mp3'));
       this.setState({ sounds: { buttonPress, buttonRelease } });
-    } catch (error) {
-      console.error(error);
-    }
+    })();
   }
   render() {
     return (
