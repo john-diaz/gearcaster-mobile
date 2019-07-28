@@ -7,18 +7,25 @@ import {
 } from 'react-native';
 import socket from '../socket';
 import { LinearGradient } from 'expo-linear-gradient';
+import { connect } from 'react-redux';
 import { Text, Button } from '../components/custom';
 import globalStyles from '../styles';
+import { TouchableHighlight } from 'react-native-gesture-handler';
 
-export default class Landing extends Component {
-  constructor(props) {
-    super(props);
+class Landing extends Component {
+  enterGame = () => {
+    console.log('entering');
   }
-  startOnboarding() {
+  startOnboarding = () => {
     console.log('create temporary account');
     socket.emit('user.createTempAccount', err => {
       if (err) {
         Alert.alert(err);
+      } else {
+        socket.emit('duel.new.tutorial', (err, gameID) => {
+          if (err) Alert.alert(err);
+          else this.props.navigation.navigate('Duel', { gameID });
+        });
       }
     });
   }
@@ -82,8 +89,8 @@ export default class Landing extends Component {
               <Text bold style={{ textAlign: 'center' }}>A fast-paced mechanical card game</Text>
             </View>
             <Button
-              title="ENTER"
-              onPress={this.startOnboarding}
+              title={this.props.user ? this.props.user.username : "START"}
+              onPress={this.props.user ? this.enterGame : this.startOnboarding}
               style={{
                 minWidth: 193,
                 minHeight: 41,
@@ -98,3 +105,7 @@ export default class Landing extends Component {
     )
   }
 }
+
+const mapStateToProps = state => ({ user: state.user });
+
+export default connect(mapStateToProps, null)(Landing);

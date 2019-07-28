@@ -1,15 +1,13 @@
 import React, { Component } from 'react';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
+import { connect } from 'react-redux';
 
-export default class AppText extends Component {
-  constructor(props) {
-    super(props);
-  }
+class AppText extends Component {
   render() {
     return(
       <Text
         style={{
-          fontFamily: this.props.bold ? 'lucida-grande-bold' : 'lucida-grande',
+          fontFamily: !this.props.fontLoaded ? undefined : this.props.bold ? 'lucida-grande-bold' : 'lucida-grande',
           color: 'white',
           fontSize: 12,
           ...(this.props.style ? this.props.style : {})
@@ -18,3 +16,7 @@ export default class AppText extends Component {
     )
   }
 }
+
+const mapStateToProps = state => ({ fontLoaded: state.fontLoaded });
+
+export default connect(mapStateToProps)(AppText);

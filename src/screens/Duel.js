@@ -1,7 +1,19 @@
 import React, { Component } from 'react';
-import { View, ImageBackground } from 'react-native';
+import { View, ImageBackground, Text } from 'react-native';
+import { connect } from 'react-redux';
+import socket from '../socket';
 
-export default class Duel extends Component {
+class Duel extends Component {
+  state = {
+    game: null
+  }
+  componentDidMount() {
+    const gameID = this.props.navigation.getParam('gameID');
+    this.joinGame(gameID);
+  }
+  joinGame(gameID) {
+    console.log('joining game', gameID);
+  }
   render() {
     return (
       <ImageBackground
@@ -12,7 +24,12 @@ export default class Duel extends Component {
           height: '100%'
         }}
       >
+        <Text>Welcome, {this.props.user.username}</Text>
       </ImageBackground>
     )
   }
 }
+
+const mapStateToProps = state => ({ user: state.user });
+
+export default connect(mapStateToProps)(Duel);
