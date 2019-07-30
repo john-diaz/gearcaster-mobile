@@ -3,30 +3,38 @@ import {
   View,
   Image,
   ImageBackground,
-  Alert
+  Alert,
+  AsyncStorage
 } from 'react-native';
 import socket from '../socket';
 import { LinearGradient } from 'expo-linear-gradient';
 import { connect } from 'react-redux';
 import { Text, Button } from '../components/custom';
 import globalStyles from '../styles';
-import { TouchableHighlight } from 'react-native-gesture-handler';
 
 class Landing extends Component {
   enterGame = () => {
     console.log('entering');
   }
   startOnboarding = () => {
-    console.log('create temporary account');
-    socket.emit('user.createTempAccount', err => {
+    socket.emit('user.createTempAccount', async (err, user) => {
       if (err) {
         Alert.alert(err);
       } else {
+        await AsyncStorage.setItem('userCredentials', JSON.stringify({
+          username: user.username,
+          token: user.token
+        }));
         socket.emit('duel.new.tutorial', (err, gameID) => {
           if (err) Alert.alert(err);
-          else this.props.navigation.navigate('Duel', { gameID });
+          else this.props.navigation.navigate('Duel', { gameID, selectedDeck: 'classic' });
         });
       }
+    });
+  }
+  signOut = () => {
+    AsyncStorage.removeItem('userCredentials').then(() => {
+      this.props.dispatch({ type: 'SET_USER', payload: null });
     });
   }
   render() {
@@ -69,6 +77,16 @@ class Landing extends Component {
               left: 0
             }}
           />
+          { this.props.user ? <Button
+            style={{
+              ...globalStyles.cobbleBox,
+              position: 'absolute',
+              top: 0,
+              right: 0,
+            }}
+            onPress={this.signOut}
+            title="Sign Out"
+          /> : null }
           <View
             style={{
               position: 'absolute',
@@ -89,7 +107,7 @@ class Landing extends Component {
               <Text bold style={{ textAlign: 'center' }}>A fast-paced mechanical card game</Text>
             </View>
             <Button
-              title={this.props.user ? this.props.user.username : "START"}
+              title={this.props.user ? "ENTER" : "START"}
               onPress={this.props.user ? this.enterGame : this.startOnboarding}
               style={{
                 minWidth: 193,

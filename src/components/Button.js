@@ -20,17 +20,17 @@ export default class AppButton extends Component {
         activeOpacity={0.95}
         onPress={this.props.onPress}
         onPressIn={() => {
-          buttonPress.playFromPositionAsync(5);
+          buttonPress.playFromPositionAsync(0);
           this.setState({ activePress: true });
         }}
         onPressOut={() => {
-          buttonRelease.playFromPositionAsync(15);
+          buttonRelease.playFromPositionAsync(0);
           this.setState({ activePress: false });
         }}
         style={{
           position: 'relative',
           borderRadius: 6,
-          borderColor: '#BDA753',
+          borderColor: !this.props.urgent ? '#BDA753' : '#bd7153',
           borderWidth: 2,
           paddingVertical: 10,
           paddingHorizontal: 15,
@@ -46,9 +46,13 @@ export default class AppButton extends Component {
       >
         <LinearGradient
           colors={
-            !this.state.activePress
-              ? ['#DBC25E', '#A89548']
-              : ['#A89548', '#DBC25E']
+            !this.props.urgent
+              ? !this.state.activePress
+                ? ['#DBC25E', '#A89548']
+                : ['#A89548', '#DBC25E']
+              : !this.state.activePress
+                ? ['#db775e', '#a84e48']
+                : ['#a84e48', '#db775e']
           }
           style={{...globalStyles.absoluteCenter}}
         />

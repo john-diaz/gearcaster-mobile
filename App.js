@@ -31,6 +31,25 @@ const AppNavigator = createStackNavigator(
 
 const Navigation = createAppContainer(AppNavigator);
 
+// https://reactnavigation.org/docs/en/state-persistence.html
+// will persist the navigation state in development mode
+const persistenceKey = "persistenceKey"
+function getPersistenceFunctions() {
+  return __DEV__ ? {
+    async persistNavigationState(navState) {
+      try {
+        await AsyncStorage.setItem(persistenceKey, JSON.stringify(navState))
+      } catch(err) {
+        // watevs ^^
+      }
+    },
+    async loadNavigationState() {
+      const jsonString = await AsyncStorage.getItem(persistenceKey)
+      return JSON.parse(jsonString)
+    }
+  } : undefined;
+}
+
 export default class App extends React.Component {
   state = {
     connection: false // socket.io connection
@@ -40,7 +59,10 @@ export default class App extends React.Component {
 
     store.subscribe(() => {
       const storeState = store.getState();
-      this.setState({ connection: storeState.connection });
+      this.setState({
+        connection: storeState.connection,
+        pendingAuth: storeState.pendingAuth
+      });
     });
 
     // socket is connected AFTER the navigationService is set by Navigation
@@ -61,7 +83,7 @@ export default class App extends React.Component {
         <Provider store={store}>
           {/* CONNECTING MODAL */}
           {
-            !this.state.connection ?
+            !this.state.connection || this.state.pendingAuth === null ?
             <View
               style={{
                 ...globalStyles.absoluteCenter,
@@ -79,7 +101,13 @@ export default class App extends React.Component {
                 justifyContent: 'center'
               }}>
                 <Spinner />
-                <Text style={{ marginTop: 10, textAlign: 'center' }}>Disconnected from the server. Reconnecting...</Text>
+                <Text style={{ marginTop: 10, textAlign: 'center' }}>
+                  {
+                    !this.state.connection
+                      ? 'Disconnected from the server. Reconnecting...'
+                      : 'Connected! Authenticating...'
+                  }
+                </Text>
               </View>
             </View>
             : null
@@ -87,6 +115,7 @@ export default class App extends React.Component {
           {/* NAVIGATION CONTAINER */}
           <Navigation
             ref={nav =>  navigationService.setTopLevelNavigator(nav)}
+            {...getPersistenceFunctions()}
           />
         </Provider>
       </View>
