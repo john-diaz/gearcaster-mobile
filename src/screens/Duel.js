@@ -1,5 +1,12 @@
 import React, { Component } from 'react';
-import { View, ImageBackground, Alert, StyleSheet } from 'react-native';
+import {
+  View,
+  ImageBackground,
+  Alert,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  Animated
+} from 'react-native';
 import { Audio } from 'expo-av';
 import { connect } from 'react-redux';
 import socket from '../socket';
@@ -8,16 +15,18 @@ import PlayerResources from '../components/Duel/PlayerResources';
 import globalStyles from '../styles';
 import Sidebar from '../components/Duel/Sidebar';
 import PlayerCard from '../components/Duel/PlayerCard';
-import Card, { CardBack } from '../components/Duel/Card';
+import Card, { CardBack, styles as cardStyles } from '../components/Duel/Card';
 import images from '../images';
 
 class Duel extends Component {
-  _ismounted= false; // https://stackoverflow.com/questions/39767482/is-there-a-way-to-check-if-the-react-component-is-unmounted
-
+  _ismounted = false; // https://stackoverflow.com/questions/39767482/is-there-a-way-to-check-if-the-react-component-is-unmounted
+  
   state = {
     attemptingJoin: false,
     game: null,
-    privateData: {}
+    privateData: {},
+    benchLayout: { pageX: undefined, pageY: undefined, width: undefined, height: undefined },
+    benchGlow: new Animated.Value(0)
   }
   componentDidMount() {
     this._ismounted = true;
@@ -185,16 +194,35 @@ class Duel extends Component {
                 }
               </View>
               {/* SELF BENCH */}
-              <View style={styles.benchContainer}>
+              <View
+                style={styles.benchContainer}
+                ref="benchRef"
+                onLayout={(e) => {
+                  this.refs.benchRef.measure((x, y, width, height, pageX, pageY) => {
+                    this.setState({
+                      benchLayout: { pageX, height, width, pageY }
+                    })
+                  })
+                }}
+              >
                 {
                   this.selfPlayer.configuration.benchSize === 3
                     ? <View style={{...styles.emptySpace, borderWidth: 0 }}/>
                     : null
                 }
                 {
-                  selfplayerEmptySlotsArray.map(() => {
-                    return <View style={styles.emptySpace} key={Math.random() * 1000}/>;
-                  })
+                  selfplayerEmptySlotsArray.map(() =>
+                    <Animated.View
+                      key={Math.random() * 1000}
+                      style={{
+                        ...styles.emptySpace,
+                        borderColor: this.state.benchGlow.interpolate({
+                          inputRange: [0, 150],
+                          outputRange: [styles.emptySpace.borderColor, '	rgb(255,223,0)']
+                        })
+                      }}
+                    />
+                  )
                 }
                 {
                   Object.values(this.selfPlayer.bench.slice().reverse()).map((card, i) =>
@@ -210,6 +238,60 @@ class Duel extends Component {
               </View>
             </View>
 
+            {
+              this.state.game.duel.finished
+              ? null
+              : <Animated.View
+                  style={styles.selfHandContainer}
+                >
+                  <View style={styles.selfHand} >
+                    {
+                      this.selfPlayer.hand.filter(c => c).map((c, i) => {
+                        const { length } = this.selfPlayer.hand.filter(c => c);
+
+                        return (
+                          <Card
+                            card={c}
+                            isAggro={false}
+                            location="hand"
+                            user={this.selfPlayer}
+                            key={c.instanceID}
+                            
+                            dropArea={this.state.benchLayout}
+                            onPickUp={() => {
+                              Animated.spring(this.state.benchGlow, {
+                                toValue: 150,
+                                duration: 700
+                              }).start();
+                            }}
+                            onDrop={(inBench) => {
+                              // emit request
+                              console.log('dropped card', inBench ? ' in bench' : '.');
+                              Animated.spring(this.state.benchGlow, {
+                                toValue: 0,
+                                duration: 300
+                              }).start();
+                            }}
+
+                            style={{
+                              zIndex: length-i,
+                              position: 'absolute',
+                              left: ((length * 38) - (38 * i)),
+                            }}
+                            imageStyle={{
+                              transform: [
+                                { translateY: (0.2*length) - (i * 0.4) },
+                                { translateX: (0.4*length) - (i * 0.4)},
+                                { rotateZ: `${(3*length) - (6 * i)}deg` }
+                              ]
+                            }}
+                          />
+                        )
+                      })
+                    }
+                  </View>
+                </Animated.View>
+            }
             <Sidebar />
           </View>
         </View>
@@ -270,9 +352,27 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     borderColor: 'rgba(0, 0, 0, 0.1)',
     borderWidth: 3,
-    height: 99,
-    width: 73,
+    height: cardStyles.cardContainer.height - 1,
+    width: cardStyles.cardContainer.width - 1,
     borderRadius: 6
+  },
+  selfHandContainer: {
+    height: cardStyles.cardContainer.height,
+    width: 230,
+    position: 'absolute',
+    bottom: -25,
+    left: 260,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'visible',
+    zIndex: 50
+  },
+  selfHand: {
+    height: cardStyles.cardContainer.height,
+    width: 230,
+    position: 'relative',
+    margin: 'auto',
+    paddingBottom: 10,
   }
 });
 
