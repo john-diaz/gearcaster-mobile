@@ -17,16 +17,36 @@ import Sidebar from '../components/Duel/Sidebar';
 import PlayerCard from '../components/Duel/PlayerCard';
 import Card, { CardBack, styles as cardStyles } from '../components/Duel/Card';
 import images from '../images';
+import { arraysEqual } from '../helpers';
 
 class Duel extends Component {
   _ismounted = false; // https://stackoverflow.com/questions/39767482/is-there-a-way-to-check-if-the-react-component-is-unmounted
-  
+
   state = {
     attemptingJoin: false,
+    // game state
     game: null,
     privateData: {},
+    activeDiscoveryCards: [],
+    virtualDuel: null,
+    isAggro: [],
+    logs: [],
+    // layout stuff
     benchLayout: { pageX: undefined, pageY: undefined, width: undefined, height: undefined },
-    benchGlow: new Animated.Value(0)
+    // animation stuff
+    playercardAnim: new Animated.Value(1), // hidding/showing player cards in combat animation
+    benchGlow: new Animated.Value(0), // indicating where to drop cards
+    userErrorAnimation: new Animated.Value(0), // animation for user error
+    userError: null,
+  }
+  newDeckAudio = new Audio.Sound();
+
+  componentWillMount() {
+    this.newDeckAudio
+      .loadAsync(require('../../assets/audio/ui/newDeck.mp3'))
+      .then(() => {
+        this.newDeckAudio.setVolumeAsync(0.1)
+      });
   }
   componentDidMount() {
     this._ismounted = true;
@@ -37,15 +57,37 @@ class Duel extends Component {
       this.setState({ game });
     });
 
+    socket.on('duelCombatInstructions', this.duelCombatInstructionsHandler);
+
     socket.on('privateData', (privateData) => {
       if (!this._ismounted) return;
 
       this.setState({ privateData });
     });
 
+    socket.on('duelDiscovery', (data) => {
+      if (!this._ismounted) return;
+
+      const { payload } = data;
+
+      if (payload.fromPlayer.id === this.props.user.id) return;
+
+      if (this.state.activeDiscoveryCards.find(c => c.instanceID === payload.from.instanceID)) return; // jic
+
+      this.setState({
+        activeDiscoveryCards: [...this.state.activeDiscoveryCards, payload.from]
+      });
+      setTimeout(() => {
+        if (!this._ismounted) return;
+        this.setState({
+          activeDiscoveryCards: this.state.activeDiscoveryCards.filter(d => d.id !== payload.from.id)
+        });
+      }, 4400);
+    });
+
     this.joinGame();
   }
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     // previous update was authenticating. Now done authenticating AND there is a 
     // (if there is no user, app will automatically navigate to landing)
     if (prevProps.pendingAuth && !this.props.pendingAuth && this.props.user) {
@@ -53,6 +95,18 @@ class Duel extends Component {
       if (!this.state.attemptingJoin) {
         this.joinGame();
       }
+    }
+
+    if (
+      !this.state.game || !this.computedDuel ||
+      !prevState.privateData.bench || !this.state.privateData.bench
+    ) return;
+
+    const currentHand = this.state.privateData.hand.map(c => c.instanceID);
+    const previousHand = prevState.privateData.hand.map(c => c.instanceID);
+
+    if (!arraysEqual(currentHand, previousHand)) {
+      this.newDeckAudio.playFromPositionAsync(0);
     }
   }
   componentWillUnmount() {
@@ -74,14 +128,104 @@ class Duel extends Component {
       if (err) {
         Alert.alert(err);
         this.props.navigation.goBack();
-      } else {
-        console.log('joined duel successfully');
       }
     });
   }
+  duelCombatInstructionsHandler = (data) => {
+    const { initialDuelState, combatInstructions } = data;
+
+    if (this.state.virtualDuel) return false;
+    this.setState({
+      virtualDuel: initialDuelState,
+      activeDiscoveryCards: []
+    });
+
+    Animated.timing(this.state.playercardAnim, {
+      toValue: 0,
+      duration: 600
+    }).start();
+
+
+    const stepDuration = 1700;
+
+    for (let i = 0; i < combatInstructions.length; i++) {
+      let timeOffset = stepDuration * (i + 1);
+      let instruction = combatInstructions[i];
+
+      setTimeout(() => {
+        if (!this._ismounted) return;
+        let newAggro = [
+          ...this.state.isAggro,
+          instruction.payload.from.id,
+          instruction.payload.to.id
+        ]
+
+        this.setState({ isAggro: newAggro });
+      }, timeOffset);
+      setTimeout(() => {
+        if (!this._ismounted) return;
+        this.applyCombatInstruction(instruction);
+      }, timeOffset + 1300);
+      setTimeout(() => {
+        if (!this._ismounted) return;
+        this.setState({ isAggro: [] });
+      }, timeOffset + 500);
+    }
+
+    setTimeout(() => {
+      Animated.timing(this.state.playercardAnim, {
+        toValue: 1,
+        duration: 100
+      }).start();
+      this.setState({ virtualDuel: null, isAggro: [] });
+    }, (combatInstructions.length + 1) * stepDuration);
+  }
+  applyCombatInstruction = ({ type, payload, outcomeDuel }) => {
+    switch (type) {
+      case "machineToPlayerDamage":
+        this.setState({
+          virtualDuel: outcomeDuel,
+          logs: [
+            ...this.state.logs,
+            { image: `cards/${payload.from.image}`, type, target: payload.to.id }
+          ]
+        });
+        break;
+      case "destroyMachine":
+        this.setState({
+          virtualDuel: outcomeDuel,
+          logs: [
+            ...this.state.logs,
+            { image: `cards/${payload.from.image}`, type, target: payload.to.id }
+          ]
+        });
+        break;
+      case "machineSelfDestruction":
+        this.setState({
+          virtualDuel: outcomeDuel,
+          logs: [
+            ...this.state.logs,
+            { image: `cards/${payload.from.image}`, type, target: "" }
+          ]
+        });
+        break;
+      case "mutualMachineDestruction":
+        this.setState({
+          virtualDuel: outcomeDuel,
+          logs: [
+            ...this.state.logs,
+            { image: `cards/${payload.from.image}`, type, target: "" }
+          ]
+        });
+        break;
+    }
+  }
+  get computedDuel() {
+    return this.state.virtualDuel ? this.state.virtualDuel : this.state.game.duel;
+  }
   get selfPlayer() {
       const userID = this.props.user.id;
-      const duel = this.state.game.duel;
+      const duel = this.computedDuel;
 
       // when we are animating, the virtual duel will include both player's "private data"
       // this is to avoid overwriting the virtual duel private data with the private data the server sent us,
@@ -96,7 +240,7 @@ class Duel extends Component {
   }
   get opponentPlayer() {
     const userID = this.props.user.id;
-    const duel = this.state.game.duel;
+    const duel = this.computedDuel;
 
     if (userID == duel.players.challenger.id) {
       return duel.players.defendant;
@@ -104,9 +248,35 @@ class Duel extends Component {
       return duel.players.challenger;
     }
   }
+
+  showUserError = (messageString) => {
+    if (this._userErrorInterval) clearTimeout(this._userErrorInterval);
+
+    this.setState({
+      userError: messageString
+    });
+    Animated.spring(this.state.userErrorAnimation, {
+      toValue: 1,
+      duration: 1200,
+      friction: 1.2
+    }).start();
+
+    this._userErrorInterval = setTimeout(() => {
+      Animated.timing(this.state.userErrorAnimation, {
+        toValue: 0,
+        duration: 600,
+      }).start(() => {
+        if (!this._ismounted) return;
+        if (this.state.userError === messageString) {
+          this.setState({ userError: null });
+        }
+      });
+    }, 2600)
+  }
+
   render() {
     // loading screen
-    if (!this.state.game || !this.state.game.duel) return (
+    if (!this.state.game || !this.computedDuel) return (
       <ImageBackground
         source={require('../../assets/img/backgrounds/clouds.png')}
         style={{...styles.backgroundImage, alignItems: 'center' }}
@@ -137,7 +307,7 @@ class Duel extends Component {
               position: 'absolute',
               top: 15,
               margin: 'auto',
-              height: 45,
+              width: 200,
               width: 175,
               alignItems: 'center',
               justifyContent: 'center',
@@ -148,6 +318,27 @@ class Duel extends Component {
           </View>
           : null
         }
+        {
+          this.state.userError
+          ? <Animated.View
+              style={{
+                ...globalStyles.cobbleBox,
+                position: 'absolute',
+                top: this.state.userErrorAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-50, 10]
+                }),
+                margin: 'auto',
+                width: 225,
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 100
+              }}
+            >
+              <Text bold style={{ color: 'red', fontSize: 16 }}>{this.state.userError}</Text>
+            </Animated.View>
+            : null
+        }
 
         <View style={styles.boardContainer}>
           <View style={styles.resourcesContainer}>
@@ -156,11 +347,35 @@ class Duel extends Component {
           </View>
           {/* MAIN BOARD */}
           <View style={styles.board}>
-            <PlayerCard player={this.opponentPlayer} opponent />
-            <PlayerCard player={this.selfPlayer} />
+            <PlayerCard
+              opponent
+              player={this.opponentPlayer}
+              activeDiscoveryCards={this.state.activeDiscoveryCards}
+              isAggro={this.state.isAggro.includes(this.opponentPlayer.id)}
+              style={{
+                transform: [{
+                  translateY: this.state.playercardAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-100, 0]
+                  })
+                }]
+              }}
+            />
+            <PlayerCard
+              player={this.selfPlayer}
+              isAggro={this.state.isAggro.includes(this.selfPlayer.id)}
+              style={{
+                transform: [{
+                  translateY: this.state.playercardAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [100, 0]
+                  })
+                }]
+              }}
+            />
 
             {/* BENCHES */}
-            <View style={styles.benchesContainer}>
+            <View style={{...styles.benchesContainer, zIndex: this.state.raiseBenches ? 101 : 1 }}>
               {/* OPPONENT BENCH */}
               <View style={styles.benchContainer}>
                 {
@@ -169,9 +384,11 @@ class Duel extends Component {
                       <Card
                         key={card.instanceID}
                         card={card}
-                        player={this.opponentPlayer}
-                        isAggro={false}
+                        user={this.opponentPlayer}
+                        isAggro={this.state.isAggro.includes(card.instanceID)}
                         location="bench-opponent"
+                        onPressIn={() => this.setState({ raiseBenches: true })}
+                        onPressOut={() => this.setState({ raiseBenches: false })}
                       />
                     )
                     else return (
@@ -229,8 +446,8 @@ class Duel extends Component {
                     <Card
                       key={card.instanceID}
                       card={card}
-                      player={this.selfPlayer}
-                      isAggro={false}
+                      user={this.selfPlayer}
+                      isAggro={this.state.isAggro.includes(card.instanceID)}
                       location="bench"
                     />
                   )
@@ -239,7 +456,7 @@ class Duel extends Component {
             </View>
 
             {
-              this.state.game.duel.finished
+              this.computedDuel.finished
               ? null
               : <Animated.View
                   style={styles.selfHandContainer}
@@ -252,7 +469,7 @@ class Duel extends Component {
                         return (
                           <Card
                             card={c}
-                            isAggro={false}
+                            isAggro={this.state.isAggro.includes(c.instanceID)}
                             location="hand"
                             user={this.selfPlayer}
                             key={c.instanceID}
@@ -264,13 +481,32 @@ class Duel extends Component {
                                 duration: 700
                               }).start();
                             }}
-                            onDrop={(inBench) => {
-                              // emit request
-                              console.log('dropped card', inBench ? ' in bench' : '.');
+                            onDrop={(inBench, hasEnough) => {
                               Animated.spring(this.state.benchGlow, {
                                 toValue: 0,
                                 duration: 300
                               }).start();
+
+                              if (inBench) {
+                                if (hasEnough) {
+                                  // play sound
+                                  const castSound = new Audio.Sound();
+
+                                  // cast
+                                  socket.emit("duel.cast", c.instanceID, () => {
+                                    castSound.loadAsync(
+                                      c.kind === "discovery"
+                                        ? require('../../assets/audio/ui/discoverycast.mp3')
+                                        : require('../../assets/audio/ui/cardscrape.mp3')
+                                    ).then(() => {
+                                      castSound.playAsync();
+                                    });
+                                  });
+                                } else {
+                                  // animate show err
+                                  this.showUserError('You do not have enough resources to cast this card!');
+                                }
+                              }
                             }}
 
                             style={{

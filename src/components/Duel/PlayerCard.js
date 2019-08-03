@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, Animated } from 'react-native';
+import Card from './Card';
 import { Text, Button } from '../custom';
 import socket from '../../socket';
 
@@ -7,7 +8,8 @@ export default class PlayerCard extends Component {
   _isMounted = false;
 
   state = {
-    intervalTimeLeft: 0
+    intervalTimeLeft: 0,
+    aggroAnim: new Animated.Value(0)
   }
   componentDidMount() {
     this._isMounted = true;
@@ -38,6 +40,20 @@ export default class PlayerCard extends Component {
         this.clearInterval();
       }
     }
+    // agro animation
+    if (prevProps.isAggro !== this.props.isAggro && this.props.isAggro) {
+      Animated.timing(this.state.aggroAnim, {
+        toValue: 1,
+        duration: 100 // time to go aggro
+      }).start(() => {
+        if (!this._isMounted) return;
+        Animated.timing(this.state.aggroAnim, {
+          toValue: 0,
+          duration: 100, // time to fade out
+          delay: 1200 // time to show aggro
+        }).start();
+      });
+    }
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -54,7 +70,7 @@ export default class PlayerCard extends Component {
   }
   render() {
     return(
-      <View
+      <Animated.View
         style={{
           width: 242,
           backgroundColor: 'rgba(255,255,255,0.73)',
@@ -77,7 +93,17 @@ export default class PlayerCard extends Component {
               borderTopLeftRadius: 10,
               borderTopRightRadius: 10
             }
-          )
+          ),
+          ...this.props.style,
+          transform: [
+            ...(this.props.style ? this.props.style.transform : []),
+            {
+              translateY: this.state.aggroAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, this.props.opponent ? 100 : -100]
+              })
+            },
+          ]
         }}
       >
         <Image
@@ -91,7 +117,12 @@ export default class PlayerCard extends Component {
             borderWidth: 5,
             borderColor: '#B4A68B',
             borderRadius: 10,
-            marginRight: 7
+            marginRight: 7,
+            ...(this.props.isAggro ? {
+              shadowColor: 'red',
+              shadowOpacity: 6,
+              shadowRadius: 10
+            } : {})
           }}
         />
         <View
@@ -142,7 +173,26 @@ export default class PlayerCard extends Component {
                   </Text>
           }
         </View>
-      </View>
+        
+        {/* ACTIVE DISCOVERY CARDS */}
+        {
+          this.props.opponent
+            ? this.props.activeDiscoveryCards.map((card, i) => 
+              <Card
+                isActiveDiscovery
+                key={card.instanceID}
+                user={this.props.player}
+                card={card}
+                style={{
+                  transform: [
+                    { translateX: i * 38 }
+                  ]
+                }}
+              />
+            )
+            : null
+        }
+      </Animated.View>
     )
   }
 }
