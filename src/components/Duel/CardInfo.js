@@ -85,14 +85,13 @@ export default class CardInfo extends Component {
           }
           { card.description ? <Text style={{ fontSize: 12, color: '#B3B3B3' }}>{ card.description }</Text> : null }
           <View
-            style={{ marginTop: 6, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'flex-start' }}
+            style={{ marginTop: 6, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-end' }}
           >
             <CardBack
               faction={card.faction}
               style={{ height: 38, width: 27, marginRight: 4 }}
               imageStyle={{ height: 38, width: 27, borderWidth: 1, borderRadius: 2 }}
             />
-            <Text bold style={{ fontSize: 12, marginTop: 2 }}>{capitalize(card.faction)} deck</Text>
           </View>
         </View>
       </Animated.View>

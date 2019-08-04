@@ -320,7 +320,8 @@ export default class Card extends Component {
                 bottom: -3,
                 left: 0,
                 right: 0,
-                alignItems: 'center'
+                alignItems: 'center',
+                zIndex: 11
               }}
             >
               <View style={{ ...globalStyles.cobbleBox, position: 'relative' }}>

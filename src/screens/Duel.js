@@ -440,7 +440,7 @@ class Duel extends Component {
                   flex: 0,
                   height: this.state.playercardAnim.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [65, 0]
+                    outputRange: [105, 0]
                   })
                 }}
               />
@@ -592,7 +592,7 @@ const styles = StyleSheet.create({
   },
   resourcesContainer: {
     zIndex: 10,
-    width: 45,
+    width: 55,
     marginRight: 10,
     marginLeft: 10,
     flexDirection: 'column',
