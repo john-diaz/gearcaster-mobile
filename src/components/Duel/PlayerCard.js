@@ -77,7 +77,7 @@ export default class PlayerCard extends Component {
           padding: 10,
           flexDirection: 'row',
           alignItems: 'center',
-          zIndex: 50,
+          zIndex: 48,
           position: 'absolute',
           left: 10,
           ...(this.props.opponent 

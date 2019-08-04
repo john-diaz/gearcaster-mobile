@@ -9,10 +9,11 @@ import {
 import { Text } from '../custom';
 import images from '../../images';
 import CardInfo from './CardInfo';
-import { hasEnoughResources } from '../../helpers';
+import { hasEnoughResources, getRarityColor } from '../../helpers';
 import { Audio } from 'expo-av';
 import { Entypo } from '@expo/vector-icons';
 import globalStyles from '../../styles';
+import DeltaBubble from './DeltaBubble';
 
 export default class Card extends Component {
   _ismounted = false;
@@ -22,7 +23,9 @@ export default class Card extends Component {
     focused: false,
     pan: new Animated.ValueXY(),
     descriptionAnim: new Animated.Value(0),
-    aggroAnim: new Animated.Value(0)
+    aggroAnim: new Animated.Value(0),
+
+    strengthDelta: null
   }
   isInDropArea = false;
   cardDealAudio = new Audio.Sound();
@@ -144,12 +147,25 @@ export default class Card extends Component {
         duration: 100
       }).start(() => {
         if (!this._ismounted) return;
+
         Animated.timing(this.state.aggroAnim, {
           toValue: 0,
           duration: 100,
-          delay: 1200 // time to show
+          delay: 1200
         }).start();
       });
+    }
+    else if (prevProps.card.attributes.strength !== this.props.card.attributes.strength) {
+      if (this._strengthInterval) clearTimeout(this._strengthInterval);
+
+      // strength display
+      this.setState({
+        strengthDelta: this.props.card.attributes.strength - prevProps.card.attributes.strength
+      });
+      this._strengthInterval = setTimeout(() => {
+        if (!this._ismounted) return;
+        this.setState({ strengthDelta: null });
+      }, 950);
     }
   }
   componentWillUnmount() {
@@ -206,26 +222,25 @@ export default class Card extends Component {
       location === 'bench-opponent'
     ) return true;
 
-    return hasEnoughResources(
-      user.resources,
-      card.kind === "machine" ? card.attributes.summonCost : card.attributes.castCost
-    );
+    return hasEnoughResources(user.resources, card.attributes.castCost);
   }
   render() {
     const { card, location, isAggro } = this.props;
+    const { aggroAnim, opacityAnim, focused, strengthDelta } = this.state;
+
     return (
       <Animated.View
         {...this.panResponder.panHandlers}
         style={{
           ...styles.cardContainer,
           ...(this.props.style || {}),
-          ...(this.state.focused > 0 ? { zIndex: 100 } : {}),
+          ...(focused > 0 ? { zIndex: 100 } : {}),
           transform: this.transforms,
-          opacity: this.state.opacityAnim,
+          opacity: opacityAnim,
           ...(this.props.isActiveDiscovery ? { // this card is an active discovery
             position: 'absolute',
             left: 50,
-            top: this.state.opacityAnim.interpolate({ // animate active discovery
+            top: opacityAnim.interpolate({ // animate active discovery
               inputRange: [0, 1],
               outputRange: [-100, 100]
             }),
@@ -233,7 +248,7 @@ export default class Card extends Component {
             shadowOpacity: 0.7
           } : {}),
           ...(isAggro ? { // aggro animations
-            top: this.state.aggroAnim.interpolate({
+            top: aggroAnim.interpolate({
               inputRange: [0, 1],
               outputRange: [0, location == 'bench-opponent' ? 20 : -20],
             }),
@@ -243,7 +258,7 @@ export default class Card extends Component {
         }}
       >
         {/* CARD INFO */}
-        { this.state.focused 
+        { focused 
             ? <CardInfo
               card={card}
               location={location}
@@ -289,13 +304,15 @@ export default class Card extends Component {
             ...styles.cardImage,
             opacity: this.hasEnough ? 1 : 0.6,
             ...(this.props.imageStyle || {}),
-            transform: this.imageTransforms
+            transform: this.imageTransforms,
+            borderColor: getRarityColor(card.rarity)
           }}
           source={images.cards[this.props.card.id]}
         />
 
-        {/* AGGRO STRENGTH DISPLAY */}
+        {/* STRENGTH DISPLAY */}
         {
+          strengthDelta ||
           isAggro && !(card._state && card._state.turnsTillBoot > 0)
           ? <View
               style={{
@@ -306,10 +323,17 @@ export default class Card extends Component {
                 alignItems: 'center'
               }}
             >
-              <View style={globalStyles.cobbleBox}>
+              <View style={{ ...globalStyles.cobbleBox, position: 'relative' }}>
                 <Text bold style={{ fontSize: 10 }}>
                   <Entypo name='controller-volume' size={10} color='white' /> {card.attributes.strength}
                 </Text>
+
+                {/* delta bubble */}
+                {
+                  strengthDelta
+                    ? <DeltaBubble delta={strengthDelta} />
+                    : null
+                }
               </View>
             </View>
           : null

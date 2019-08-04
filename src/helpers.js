@@ -48,3 +48,21 @@ export function arraysEqual(_arr1, _arr2) {
 
   return true;
 }
+
+export function uuidv4() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+    /[xy]/g,
+    (c) => {
+      let r = (Math.random() * 16) | 0,
+        v = c == "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    }
+  );
+}
+
+export const getRarityColor = (rarity) => {
+  return rarity === 'rare' ? '#7957D5'
+        : rarity === 'epic' ? 'rgb(220, 255, 0)'
+        : rarity === 'legendary' ? '#fcef78'
+        : 'black'
+}

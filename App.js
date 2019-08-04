@@ -25,7 +25,10 @@ const AppNavigator = createStackNavigator(
     headerMode: 'none',
     navigationOptions: {
       headerVisible: false,
-    }
+    },
+    defaultNavigationOptions: {
+      gesturesEnabled: false,
+    },
   }
 );
 

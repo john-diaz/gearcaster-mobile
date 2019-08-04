@@ -7,13 +7,13 @@ import {
 import { Text } from '../custom';
 import globalStyles from '../../styles';
 import { CardBack } from './Card';
-import { capitalize } from '../../helpers';
+import { capitalize, getRarityColor } from '../../helpers';
 import { Entypo } from '@expo/vector-icons';
 
 export default class CardInfo extends Component {
   render() {
     const { card, location, resources } = this.props;
-    const cost = card.kind === "machine" ? card.attributes.summonCost : card.attributes.castCost;
+    const cost = card.attributes.castCost;
 
     return (
       <Animated.View
@@ -36,9 +36,7 @@ export default class CardInfo extends Component {
                 ? <Text
                     style={{
                       fontSize: 14,
-                      color: card.rarity === 'rare' ? '#7957D5'
-                            : card.rarity === 'epic' ? '#d16bff'
-                            : card.rarity === 'legendary' ? '#fcef78' : 'white'
+                      color: getRarityColor(card.rarity)
                     }}
                     bold
                   >
@@ -52,23 +50,16 @@ export default class CardInfo extends Component {
               ? (
                   <Text style={styles.descriptionText}>
                     Cost: { Object.values(cost).reduce((a, b) => a + b) == 0 ? <Text>None</Text> : null }
-                    {cost.energy ? <Text style={{...styles.descriptionText, color: resources.energy >= cost.energy ? 'white' : 'red'}}>
-                      <Entypo name="flash" size={12} color={'white'} /> {cost.energy}
-                    </Text> : null}
                     {cost.gears ? <Text style={{...styles.descriptionText, color: resources.gears >= cost.gears ? 'white' : 'red'}}>
                       <Entypo name="cog" size={12} color={'white'} /> {cost.gears}
                     </Text> : null}
                     {cost.health ? <Text style={{...styles.descriptionText, color: resources.health >= cost.health ? 'white' : 'red'}}>
                       <Entypo name="heart" size={12} color={'white'} /> {cost.health}
                     </Text> : null}
-                    {cost.springs ? <Text style={{...styles.descriptionText, color: resources.springs >= cost.springs ? 'white' : 'red'}}>
-                      <Entypo name="flow-parallel" size={12} color={'white'} /> {cost.springs}
-                    </Text> : null}
                   </Text>
                 )
               : null
           }
-          <Text style={{ fontSize: 12, color: '#B3B3B3' }}>Type: {capitalize(card.kind)}</Text>
 
           <View style={{ alignSelf: 'stretch', height: 1, backgroundColor: '#828282', marginVertical: 6 }} />
 
@@ -92,7 +83,7 @@ export default class CardInfo extends Component {
                 </Text>
               : null
           }
-          { card.kind === 'discovery' ? <Text style={{ fontSize: 12, color: '#B3B3B3' }}>{ card.description }</Text> : null }
+          { card.description ? <Text style={{ fontSize: 12, color: '#B3B3B3' }}>{ card.description }</Text> : null }
           <View
             style={{ marginTop: 6, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'flex-start' }}
           >

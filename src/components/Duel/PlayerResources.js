@@ -3,16 +3,19 @@ import { View, StyleSheet, Animated } from 'react-native';
 import { Text } from '../custom';
 import globalStyles from '../../styles';
 import { Entypo } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import DeltaBubble from './DeltaBubble';
+import { uuidv4 } from '../../helpers';
 
 export default class PlayerResources extends Component {
   _ismounted = false;
   state = {
     // animation data
-    springs: { delta: 0, animation: new Animated.Value(0) },
-    gears:   { delta: 0, animation: new Animated.Value(0) },
-    energy:  { delta: 0, animation: new Animated.Value(0) },
-    health:  { delta: 0, animation: new Animated.Value(0) },
+    gears:   { deltas: [] },
+    health:  { deltas: [] },
   }
+  healthAnim = new Animated.Value(1);
+
   componentDidMount() {
     this._ismounted = true;
   }
@@ -20,110 +23,135 @@ export default class PlayerResources extends Component {
     this._ismounted = false;
   }
   componentDidUpdate(prevProps) {
-    const { resources } = this.props;
     const prevResources = prevProps.resources;
+    const { resources } = this.props;
 
     Object.keys(resources).forEach(resourceName => {
-      const previous = prevResources[resourceName];
+      const prev = prevResources[resourceName];
       const current = resources[resourceName];
 
-      if (previous === current) return;
-      console.log(resourceName, 'changed');
+      if (prev !== current) {
+        const delta = current - prev;
+        const uuid = uuidv4();
 
-      const delta = current - previous;
+        if (resourceName === 'health') {
+          Animated.timing(this.healthAnim, {
+            toValue: current / 20,
+            duration: 200
+          }).start();
+          if (delta > 0) {
+            const healAudio = new Audio.Sound();
+            healAudio.loadAsync(require('../../../assets/audio/ui/heal.mp3')).then(() => {
+              healAudio.playAsync();
+            });
+          } else {
+            const damageAudio = new Audio.Sound();
+            damageAudio.loadAsync(require('../../../assets/audio/ui/damage.mp3')).then(() => {
+              damageAudio.playAsync();
+            });
+          }
+        }
 
-      const resourceChange = this.state[resourceName];
+        this.state[resourceName].deltas.push({ delta, uuid });
+        this.setState(this.state);
 
-      if (resourceChange.animation.stop) resourceChange.animation.stop();
-
-      this.state[resourceName].delta = delta;
-      this.setState(this.state);
-
-      Animated.timing(resourceChange.animation, { // start animation
-        fromValue: 0,
-        toValue: 1,
-        duration: 100
-      }).start(() => {
-        if (!this._ismounted) return;
-
-        Animated.timing(resourceChange.animation, {
-          toValue: 0,
-          duration: 100,
-          delay: 700
-        }).start(() => {
-          this.state[resourceName].delta = 0;
+        setTimeout(() => {
+          if (!this._ismounted) return;
+          this.state[resourceName].deltas = this.state[resourceName].deltas.filter(d => d.uuid !== uuid);
           this.setState(this.state);
-        });
-      });
+        }, 900);
+      }
     });
   }
   render() {
+    const { resources } = this.props;
+
     return (
       <View style={styles.resourcesContainer}>
-        {
-          ['health', 'energy', 'gears', 'springs']
-            .map((resource) =>
-              <View key={resource} style={{...styles.resource, borderBottomWidth: resource !== 'springs' ? 1 : 0}}>
-                <View 
-                  style={{ 
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Text
+        {/* HEALTH BAR CONTAINER*/}
+        <View style={styles.healthContainer}>
+          <View
+            style={{
+              ...globalStyles.absoluteCenter,
+              zIndex: 10,
+              justifyContent: 'center',
+              alignItems: 'center',
+              alignItems: 'stretch'
+            }}
+          >
+            <View style={{ position: 'relative' }}>
+              <Text
+                style={{
+                  position: 'relative',
+                  color: resources.health <= 5 ? 'red' : 'white',
+                  textAlign: 'center'
+                }}
+                bold
+              >
+                <Entypo size={14} name='heart' color='white' /> {resources.health}
+              </Text>
+              {/* health delta bubble */}
+              {
+                this.state.health.deltas.map((d, i) => 
+                  <DeltaBubble
+                    delta={d.delta}
+                    key={d.uuid}
                     style={{
-                      marginRight: 2,
-                      color: resource === 'health' ? (this.props.resources.health <= 5 ? '#ff0017' : 'white')
-                           : resource === 'energy' ? '#00fe52'
-                           : resource === 'gears' ? '#d7d79a'
-                           :'#00b1ef'
+                      transform: [{
+                        translateX: 24 * i
+                      }]
                     }}
-                  >
-                    {this.props.resources[resource]}
-                  </Text>
-                  <Entypo
-                    name={
-                      resource === 'health'
-                        ? 'heart'
-                        : resource === 'energy'
-                        ? 'flash'
-                        : resource === 'gears'
-                        ? 'cog'
-                        : 'flow-parallel'
-                    }
-                    color={
-                        resource === 'health' ? '#e0bcbc'
-                      : resource === 'energy' ? '#00fe52'
-                      : resource === 'gears' ? '#d7d79a'
-                      :'#00b1ef'
-                    }
-                    size={12}
                   />
-                </View>
-
-                {/* resource change bubble */}
-                {
-                  this.state[resource].delta
-                    ? <View
-                        style={{
-                          ...styles.resourceBubble,
-                          backgroundColor: this.state[resource].delta > 0 ? 'green' : 'red'
-                        }}
-                      >
-                        <Text
-                          bold
-                          style={{ fontSize: 12 }}
-                        >
-                          {this.state[resource].delta > 0 ? '+' : ''}
-                          {this.state[resource].delta}
-                        </Text>
-                      </View>
-                    : null
-                }
-              </View>
+                )
+              }
+            </View>
+          </View>
+          {/* HEALTH BAR */}
+          <Animated.View
+            style={{
+              ...styles.healthBar,
+              flex: this.healthAnim,
+              zIndex: 5
+            }}
+          />
+        </View>
+        {/* GEARS */}
+        <View
+          style={{
+            ...styles.gearsContainer,
+            backgroundColor: resources.gears <= 0 ? '#444' : '#3399FF'
+          }}
+        >
+          {/* change bubble */}
+          {
+            this.state.gears.deltas.map((d, i) => 
+              <DeltaBubble
+                delta={d.delta}
+                key={d.uuid}
+                style={{
+                  transform: [{
+                    translateX: 24 * i
+                  }]
+                }}
+              />
             )
-        }
+          }
+          <Text
+            style={{
+              color: resources.gears <= 0 ? 'grey' : 'white',
+              textAlign: 'center',
+              fontSize: 16
+            }}
+            bold
+          >
+            <Entypo
+              name="cog"
+              size={14}
+              color={resources.gears <= 0 ? 'grey' : 'white'}
+            />
+            {resources.gears}
+          </Text>
+        </View>
       </View>
     )
   }
@@ -132,23 +160,30 @@ export default class PlayerResources extends Component {
 const styles = StyleSheet.create({
   resourcesContainer: {
     ...globalStyles.fadedCobblebox,
+    padding: 0,
     flex: 1,
     marginVertical: 7,
     flexDirection: 'column',
     alignItems: 'stretch'
   },
-  resource: {
+  healthContainer: {
     flex: 1,
-    justifyContent: 'center',
-    borderColor: '#C8C8C8',
+    alignItems: 'stretch',
     position: 'relative'
   },
-  resourceBubble: {
-    height: 24,
-    width: 24,
-    borderRadius: 24,
-    position: 'absolute',
-    right: -20,
+  healthBar: {
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
+    backgroundColor: '#F62C46'
+  },
+  gearsContainer: {
+    position: 'relative',
+    borderColor: '#4F4F4F',
+    borderTopWidth: 2,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+    height: 40,
+    backgroundColor: '#3399FF',
     justifyContent: 'center',
     alignItems: 'center'
   }

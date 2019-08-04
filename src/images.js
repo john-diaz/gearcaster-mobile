@@ -20,7 +20,7 @@ export default {
     'Tiny Bot': require(`${imgPath}/ui/cards/machineScapegoatBot.jpg`), 
     'Buildup Bot': require(`${imgPath}/ui/cards/machineBuildupBot.jpg`), 
     'Explosive Bot': require(`${imgPath}/ui/cards/machineExplosiveBot.jpg`), 
-    'Self Optimizer': require(`${imgPath}/ui/cards/selfOptimizer.png`), 
+    'Companion Bot v2': require(`${imgPath}/ui/cards/selfOptimizer.png`), 
     'Reanimated Artifact': require(`${imgPath}/ui/cards/mechaBones.png`), 
     'Campfire': require(`${imgPath}/ui/cards/discoveryCampfire.jpg`), 
     'Energy Relic': require(`${imgPath}/ui/cards/discoveryEnergyRelic.jpg`), 
@@ -62,6 +62,8 @@ export default {
     'Familiarity': require(`${imgPath}/ui/cards/discoveryFamiliarity.jpg`), 
     'Plague': require(`${imgPath}/ui/cards/discoveryPlague.jpg`), 
     'Realization': require(`${imgPath}/ui/cards/discoveryRealization.jpg`), 
-    'Famine': require(`${imgPath}/ui/cards/discoveryFamine.jpg`)
+    'Famine': require(`${imgPath}/ui/cards/discoveryFamine.jpg`),
+    'Gear Relic': require(`${imgPath}/ui/cards/gearRelic.png`),
+    'Gear Justice': require(`${imgPath}/ui/cards/gearJustice.png`)
   }
 }

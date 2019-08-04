@@ -160,6 +160,8 @@ class Duel extends Component {
           instruction.payload.to.id
         ]
 
+        this.playBotActiveFX();
+
         this.setState({ isAggro: newAggro });
       }, timeOffset);
       setTimeout(() => {
@@ -219,6 +221,28 @@ class Duel extends Component {
         });
         break;
     }
+  }
+  playBotActiveFX() {
+    const bootingSounds = [
+      require('../../assets/audio/ui/botActive1.mp3'),
+      require('../../assets/audio/ui/botActive2.mp3'),
+      require('../../assets/audio/ui/botActive3.mp3'),
+      require('../../assets/audio/ui/botActive4.mp3'),
+      require('../../assets/audio/ui/botActive5.mp3'),
+      require('../../assets/audio/ui/botActive6.mp3'),
+      require('../../assets/audio/ui/botActive7.mp3'),
+      require('../../assets/audio/ui/botActive8.mp3'),
+    ]
+    const selectedSound = bootingSounds[Math.floor(Math.random() * bootingSounds.length - 1)];
+    const audio = new Audio.Sound();
+    audio.loadAsync(selectedSound).then(() => {
+      audio.playAsync();
+    });
+
+    const damageAudio = new Audio.Sound();
+    damageAudio.loadAsync(require('../../assets/audio/ui/damage.mp3')).then(() => {
+      damageAudio.playAsync();
+    });
   }
   get computedDuel() {
     return this.state.virtualDuel ? this.state.virtualDuel : this.state.game.duel;
@@ -375,7 +399,7 @@ class Duel extends Component {
             />
 
             {/* BENCHES */}
-            <View style={{...styles.benchesContainer, zIndex: this.state.raiseBenches ? 101 : 1 }}>
+            <View style={{...styles.benchesContainer, zIndex: this.state.raiseBenches ? 49 : 1 }}>
               {/* OPPONENT BENCH */}
               <View style={styles.benchContainer}>
                 {
@@ -410,6 +434,16 @@ class Duel extends Component {
                     : null
                 }
               </View>
+              {/* BENCH DIVIDER */}
+              <Animated.View
+                style={{
+                  flex: 0,
+                  height: this.state.playercardAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [65, 0]
+                  })
+                }}
+              />
               {/* SELF BENCH */}
               <View
                 style={styles.benchContainer}
@@ -423,9 +457,17 @@ class Duel extends Component {
                 }}
               >
                 {
-                  this.selfPlayer.configuration.benchSize === 3
-                    ? <View style={{...styles.emptySpace, borderWidth: 0 }}/>
-                    : null
+                  Object.values(this.selfPlayer.bench.slice()).map((card, i) =>
+                    <Card
+                      key={card.instanceID}
+                      card={card}
+                      user={this.selfPlayer}
+                      onPressIn={() => this.setState({ raiseBenches: true })}
+                      onPressOut={() => this.setState({ raiseBenches: false })}
+                      isAggro={this.state.isAggro.includes(card.instanceID)}
+                      location="bench"
+                    />
+                  )
                 }
                 {
                   selfplayerEmptySlotsArray.map(() =>
@@ -442,15 +484,9 @@ class Duel extends Component {
                   )
                 }
                 {
-                  Object.values(this.selfPlayer.bench.slice().reverse()).map((card, i) =>
-                    <Card
-                      key={card.instanceID}
-                      card={card}
-                      user={this.selfPlayer}
-                      isAggro={this.state.isAggro.includes(card.instanceID)}
-                      location="bench"
-                    />
-                  )
+                  this.selfPlayer.configuration.benchSize === 3
+                    ? <View style={{...styles.emptySpace, borderWidth: 0 }}/>
+                    : null
                 }
               </View>
             </View>
@@ -474,6 +510,9 @@ class Duel extends Component {
                             user={this.selfPlayer}
                             key={c.instanceID}
                             
+                            onPressIn={() => this.setState({ raiseBenches: true })}
+                            onPressOut={() => this.setState({ raiseBenches: false })}
+
                             dropArea={this.state.benchLayout}
                             onPickUp={() => {
                               Animated.spring(this.state.benchGlow, {
@@ -552,6 +591,7 @@ const styles = StyleSheet.create({
     maxWidth: 710,
   },
   resourcesContainer: {
+    zIndex: 10,
     width: 45,
     marginRight: 10,
     marginLeft: 10,
@@ -559,6 +599,8 @@ const styles = StyleSheet.create({
     alignItems: 'stretch'
   },
   board: {
+    zIndex: 5,
+    marginLeft: 15,
     flex: 1,
     backgroundColor: '#D3AE8C',
     borderColor: 'rgba(79,79,79,0.75)',
@@ -575,7 +617,7 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     justifyContent: 'space-between',
     marginRight: 35,
-    height: 220,
+    minHeight: 220,
     width: 380
   },
   benchContainer: {
