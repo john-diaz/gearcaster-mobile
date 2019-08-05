@@ -10,6 +10,8 @@ import store from './src/store';
 // components
 import LandingScreen from './src/screens/Landing';
 import DuelScreen from './src/screens/Duel';
+import DeckConfigurationScreen from './src/screens/DeckConfiguration';
+
 import { Text, Spinner } from './src/components/custom';
 // styles
 import globalStyles from './src/styles';
@@ -18,7 +20,8 @@ import navigationService from './src/navigationService';
 const AppNavigator = createStackNavigator(
   {
     Landing: LandingScreen,
-    Duel: DuelScreen
+    Duel: DuelScreen,
+    DeckConfiguration: DeckConfigurationScreen,
   },
   {
     initialRouteName: 'Landing',

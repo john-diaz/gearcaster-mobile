@@ -18,6 +18,7 @@ import PlayerCard from '../components/Duel/PlayerCard';
 import Card, { CardBack, styles as cardStyles } from '../components/Duel/Card';
 import images from '../images';
 import { arraysEqual } from '../helpers';
+import PostDuel from '../components/Duel/PostDuel';
 
 class Duel extends Component {
   _ismounted = false; // https://stackoverflow.com/questions/39767482/is-there-a-way-to-check-if-the-react-component-is-unmounted
@@ -31,13 +32,14 @@ class Duel extends Component {
     virtualDuel: null,
     isAggro: [],
     logs: [],
+    finishedInfo: null,
     // layout stuff
     benchLayout: { pageX: undefined, pageY: undefined, width: undefined, height: undefined },
     // animation stuff
     playercardAnim: new Animated.Value(1), // hidding/showing player cards in combat animation
     benchGlow: new Animated.Value(0), // indicating where to drop cards
     userErrorAnimation: new Animated.Value(0), // animation for user error
-    userError: null,
+    userError: null
   }
   newDeckAudio = new Audio.Sound();
 
@@ -90,24 +92,50 @@ class Duel extends Component {
   componentDidUpdate(prevProps, prevState) {
     // previous update was authenticating. Now done authenticating AND there is a 
     // (if there is no user, app will automatically navigate to landing)
-    if (prevProps.pendingAuth && !this.props.pendingAuth && this.props.user) {
+    if (prevProps.pendingAuth !== this.props.pendingAuth && this.props.user) {
       console.log('detected authentication change!');
       if (!this.state.attemptingJoin) {
         this.joinGame();
       }
     }
 
+    const { game, privateData } = this.state;
+    const computedDuel = game ? this.computedDuel : null;
+
+    // compare selfPlayer.benches to play change sound effect
     if (
-      !this.state.game || !this.computedDuel ||
-      !prevState.privateData.bench || !this.state.privateData.bench
-    ) return;
-
-    const currentHand = this.state.privateData.hand.map(c => c.instanceID);
-    const previousHand = prevState.privateData.hand.map(c => c.instanceID);
-
-    if (!arraysEqual(currentHand, previousHand)) {
-      this.newDeckAudio.playFromPositionAsync(0);
+      game && computedDuel &&
+      prevState.privateData.bench && privateData.bench
+    ) {
+      const currentHand = privateData.hand.map(c => c.instanceID);
+      const previousHand = prevState.privateData.hand.map(c => c.instanceID);
+  
+      if (!arraysEqual(currentHand, previousHand)) {
+        this.newDeckAudio.playFromPositionAsync(0);
+      }
     }
+
+    // check for game finished
+    if (game && computedDuel && (computedDuel.finished && !this.state.finishedInfo)) {
+      const { user } = this.props;
+      const { players } = computedDuel;
+
+      const selfWon = players.challenger.victoryPosition === "won" && user.id === players.challenger.id
+        ? true
+        : players.defendant.victoryPosition === "won" && user.id === players.defendant.id
+          ? true
+          : false;
+
+      this.setState({
+        finishedInfo: {
+          selfWon,
+          selfUser: this.props.user,
+          players,
+          rewardPacks: game.rewardPacks
+        }
+      });
+    }
+
   }
   componentWillUnmount() {
     this._ismounted = false;
@@ -323,6 +351,14 @@ class Duel extends Component {
         source={require('../../assets/img/backgrounds/clouds.png')}
         style={styles.backgroundImage}
       >
+        {/* POST DUEL VIEW */}
+        {
+          this.state.finishedInfo
+          ? <PostDuel {...this.state.finishedInfo} />
+          : null
+        }
+
+        {/* JOIN ATTEMPT BANNER */}
         {
           this.state.attemptingJoin
           ? <View
@@ -342,6 +378,8 @@ class Duel extends Component {
           </View>
           : null
         }
+
+        {/* USER ERROR BANNER */}
         {
           this.state.userError
           ? <Animated.View
@@ -364,6 +402,7 @@ class Duel extends Component {
             : null
         }
 
+        {/* BOARD CONTAINER */}
         <View style={styles.boardContainer}>
           <View style={styles.resourcesContainer}>
             <PlayerResources resources={this.opponentPlayer.resources}/>
@@ -582,7 +621,8 @@ const styles = StyleSheet.create({
     height: '100%',
     flexDirection: 'row',
     alignItems: 'stretch',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    position: 'relative'
   },
   boardContainer: {
     flexDirection: 'row',

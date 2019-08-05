@@ -351,7 +351,8 @@ export class CardBack extends Component {
   componentDidMount() {
     Animated.timing(this.state.fadeinAnim, {
       toValue: 1,
-      duration: 500
+      duration: 500,
+      delay: 500
     }).start();
   }
   render() {
@@ -378,6 +379,45 @@ export class CardBack extends Component {
   }
 }
 
+export class CardPack extends Component {
+  render() {
+    return (
+      <View
+        style={{
+          position: 'relative',
+          overflow: 'visible',
+          ...this.props.containerStyle
+        }}
+      >
+        {
+          [3, 2, 1, 0].map((i, l) =>
+            <View
+              key={i}
+              style={{
+                ...globalStyles.absoluteCenter,
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflow: 'visible',
+                zIndex: i
+              }}
+            >
+              <CardBack
+                style={{
+                  transform: [{ rotateZ: `${(l - i) * 4}deg` }],
+                  ...this.props.style
+                }}
+                imageStyle={{
+                  ...this.props.imageStyle
+                }}
+                faction={this.props.faction}
+              />
+            </View>
+          )
+        }
+      </View>
+    )
+  }
+}
 export const styles = StyleSheet.create({
   cardContainer: {
     height: 100,

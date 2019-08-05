@@ -18,6 +18,9 @@ export default class PlayerResources extends Component {
 
   componentDidMount() {
     this._ismounted = true;
+
+    const { resources } = this.props;
+    this.healthAnim.setValue(resources.health / 20);
   }
   componentWillUnmount() {
     this._ismounted = false;

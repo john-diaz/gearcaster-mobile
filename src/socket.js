@@ -10,6 +10,8 @@ const socket = io('http://192.168.1.5:3000', {
   autoConnect: false // SOCKET IS INITIATED INSIDE APP.JS
 });
 
+let interruptedByAuthentication = false;
+
 // socket events
 socket.on('connect', () => {
   console.info('[socket] connected');
@@ -19,7 +21,13 @@ socket.on('connect', () => {
 
     if (!user) {
       // first navigate to landing
-      navigationService.navigate('Landing');
+      if (interruptedByAuthentication) {
+        // attempt to go back to where the user was when they were interrupted
+        navigationService.goBack();
+        interruptedByAuthentication = false;
+      } else {
+        navigationService.navigate('Landing');
+      }
       // after that, set the user (to avoid other screens rendering without a user)
       store.dispatch({ type: 'SET_USER', payload: user });
     }
@@ -68,7 +76,10 @@ socket.on('userData', (data) => {
   if (!data) {
     // avoid other screens rendering without a user
     navigationService.navigate('Landing');
+    // set flag
+    interruptedByAuthentication = true;
   }
+
   store.dispatch({
     type: 'SET_USER',
     payload: data ? data : null

@@ -3,7 +3,6 @@ import { NavigationActions } from 'react-navigation';
 let _navigator;
 
 function setTopLevelNavigator(navigatorRef) {
-  console.info('navigationService set top level navigator');
   _navigator = navigatorRef;
 }
 
@@ -16,7 +15,12 @@ function navigate(routeName, params) {
   );
 }
 
+function goBack() {
+  _navigator.dispatch(NavigationActions.goBack());
+}
+
 export default {
   navigate,
   setTopLevelNavigator,
+  goBack,
 };

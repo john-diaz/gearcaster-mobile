@@ -14,7 +14,13 @@ import globalStyles from '../styles';
 
 class Landing extends Component {
   enterGame = () => {
-    console.log('entering');
+    const { needsToLearn } = this.props.user;
+
+    if (needsToLearn.includes("intro-duel")) {
+      this.startTutorialDuel();
+    } else {
+      this.props.navigation.navigate('DeckConfiguration');
+    }
   }
   startOnboarding = () => {
     socket.emit('user.createTempAccount', async (err, user) => {
@@ -25,16 +31,19 @@ class Landing extends Component {
           username: user.username,
           token: user.token
         }));
-        socket.emit('duel.new.tutorial', (err, gameID) => {
-          if (err) Alert.alert(err);
-          else this.props.navigation.navigate('Duel', { gameID, selectedDeck: 'classic' });
-        });
+        this.startTutorialDuel();
       }
     });
   }
   signOut = () => {
     AsyncStorage.removeItem('userCredentials').then(() => {
       this.props.dispatch({ type: 'SET_USER', payload: null });
+    });
+  }
+  startTutorialDuel() {
+    socket.emit('duel.new.tutorial', (err, gameID) => {
+      if (err) Alert.alert(err);
+      else this.props.navigation.navigate('Duel', { gameID, selectedDeck: 'classic' });
     });
   }
   render() {
