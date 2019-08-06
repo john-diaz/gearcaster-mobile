@@ -2,8 +2,8 @@ import initialState from "./initialState";
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    case 'SET_PENDING_AUTH':
-      return ({ ...state, pendingAuth: action.payload });
+    case 'SET_AUTH_STATUS':
+      return ({ ...state, authStatus: action.payload });
     case 'FONT_LOADED':
       console.info('font loaded');
       return ({ ...state, fontLoaded: true });

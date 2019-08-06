@@ -26,7 +26,7 @@ export default class Spinner extends Component {
   render() {
     return (
       <Animated.Image
-        source={require('../../assets/img/ui/icons/gear.png')}
+        source={require('../../../assets/img/ui/icons/gear.png')}
         style={{
           height: 32,
           width: 32,

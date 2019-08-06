@@ -27,7 +27,14 @@ export default class CardInfo extends Component {
                   top: -140
                 }
               : {}
-            )
+            ),
+          ...(
+            location === 'collection'
+            ? {
+              right: -100
+            }
+            : {}
+          )
         }}
       >
         <View style={styles.cardInfo}>
@@ -85,7 +92,7 @@ export default class CardInfo extends Component {
           }
           { card.description ? <Text style={{ fontSize: 12, color: '#B3B3B3' }}>{ card.description }</Text> : null }
           <View
-            style={{ marginTop: 6, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-end' }}
+            style={{ marginTop: 6, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start' }}
           >
             <CardBack
               faction={card.faction}

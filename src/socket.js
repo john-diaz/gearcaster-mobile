@@ -16,19 +16,21 @@ let interruptedByAuthentication = false;
 socket.on('connect', () => {
   console.info('[socket] connected');
 
+  store.dispatch({ type: 'SET_AUTH_STATUS', payload: 0 });
   authenticateSocket((user) => {
     console.info('[socket] attempt to authenticate socket', user ? 'was successful!' : 'failed!');
+
+    store.dispatch({ type: 'SET_AUTH_STATUS', payload: user ? 1 : -1 });
 
     if (!user) {
       // first navigate to landing
       if (interruptedByAuthentication) {
-        // attempt to go back to where the user was when they were interrupted
         navigationService.goBack();
         interruptedByAuthentication = false;
       } else {
         navigationService.navigate('Landing');
       }
-      // after that, set the user (to avoid other screens rendering without a user)
+    } else {
       store.dispatch({ type: 'SET_USER', payload: user });
     }
   });
@@ -36,7 +38,6 @@ socket.on('connect', () => {
 });
 
 function authenticateSocket(resolve) {
-  store.dispatch({ type: 'SET_PENDING_AUTH', payload: true });
   AsyncStorage.getItem("userCredentials")
   .then(credentialsJSON => {
     if (!credentialsJSON) {
@@ -58,9 +59,6 @@ function authenticateSocket(resolve) {
   })
   .catch(err => {
     resolve(null);
-  })
-  .finally(() => {
-    store.dispatch({ type: 'SET_PENDING_AUTH', payload: false });
   });
 }
 socket.on('disconnect', () => {
@@ -72,18 +70,22 @@ socket.on('connect_error', (err) => {
 });
 
 // CUSTOM EVENTS
-socket.on('userData', (data) => {
+socket.on('userData', async (data) => {
   if (!data) {
     // avoid other screens rendering without a user
-    navigationService.navigate('Landing');
+    await navigationService.navigate('Landing');
     // set flag
     interruptedByAuthentication = true;
   }
 
-  store.dispatch({
-    type: 'SET_USER',
-    payload: data ? data : null
-  });
+  if (data) {
+    store.dispatch({
+      type: 'SET_USER',
+      payload: data
+    });
+  } else {
+    store.dispatch({ type: 'SET_AUTH_STATUS', payload: -1 });
+  }
 });
 
 export default socket;

@@ -90,8 +90,6 @@ export default class Card extends Component {
           duration: 50
         }).start();
 
-        typeof this.props.onPressOut === "function" ? this.props.onPressOut() : null;
-
         if (this.props.location === "hand") {
           this.props.onDrop(this.isInDropArea, this.hasEnough);
           this.isInDropArea = false;
@@ -107,7 +105,7 @@ export default class Card extends Component {
 
     const { location } = this.props;
 
-    if (location !== "hand" && location !== "bench") {
+    if (!["bench", "hand", "collection"].includes(location)) {
       this.cardDealAudio.loadAsync(
         this.props.isActiveDiscovery
           ? require('../../../assets/audio/ui/discoverycast.mp3')
@@ -118,16 +116,21 @@ export default class Card extends Component {
       });
     }
 
-    Animated.parallel([
-      Animated.timing(this.state.scaleAnim, {
-        toValue: 1,
-        duration: 500
-      }),
-      Animated.timing(this.state.opacityAnim, {
-        toValue: 1,
-        duration: 500
-      })
-    ]).start();
+    if (this.props.fadeInAnim === false) {
+      this.state.scaleAnim.setValue(1);
+      this.state.opacityAnim.setValue(1);
+    } else {
+      Animated.parallel([
+        Animated.timing(this.state.scaleAnim, {
+          toValue: 1,
+          duration: 500
+        }),
+        Animated.timing(this.state.opacityAnim, {
+          toValue: 1,
+          duration: 500
+        })
+      ]).start();
+    }
 
     if (this.props.isActiveDiscovery) {
       // animate the discovery card leaving in 4 seconds
@@ -277,8 +280,8 @@ export default class Card extends Component {
 
         {/* BOOTING SCREEN */}
         {
-          card._state &&
-          location == "bench" &&
+          (location == "bench" || location == "bench-opponent") &&
+          card.attributes.bootTurnsRequired &&
           card._state.turnsTillBoot > 0
             ? <View
                 style={{

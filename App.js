@@ -67,7 +67,7 @@ export default class App extends React.Component {
       const storeState = store.getState();
       this.setState({
         connection: storeState.connection,
-        pendingAuth: storeState.pendingAuth
+        authStatus: storeState.authStatus
       });
     });
 
@@ -89,7 +89,7 @@ export default class App extends React.Component {
         <Provider store={store}>
           {/* CONNECTING MODAL */}
           {
-            !this.state.connection || this.state.pendingAuth === null ?
+            !this.state.connection || this.state.authStatus === 0 ?
             <View
               style={{
                 ...globalStyles.absoluteCenter,
@@ -111,7 +111,7 @@ export default class App extends React.Component {
                   {
                     !this.state.connection
                       ? 'Disconnected from the server. Reconnecting...'
-                      : 'Connected! Authenticating...'
+                      : 'Connected! Checking Authentication...'
                   }
                 </Text>
               </View>

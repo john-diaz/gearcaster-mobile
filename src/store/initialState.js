@@ -1,6 +1,6 @@
 export default {
   user: null,
-  pendingAuth: null,
+  authStatus: null,
   fontLoaded: false,
   conneciton: false
 }
