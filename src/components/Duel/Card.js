@@ -18,6 +18,8 @@ import DeltaBubble from './DeltaBubble';
 export default class Card extends Component {
   _ismounted = false;
   state = {
+    panResponder: {},
+
     opacityAnim: new Animated.Value(0),
     scaleAnim: new Animated.Value(2),
     focused: false,
@@ -31,7 +33,17 @@ export default class Card extends Component {
   cardDealAudio = new Audio.Sound();
 
   componentWillMount() {
-    this.panResponder = PanResponder.create({
+    this.setPanResponder(this.props.location);
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location !== this.props.location) {
+      // console.log('change in card location');
+      this.setPanResponder(nextProps.location);
+    }
+  }
+
+  setPanResponder(location) {
+    let panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onStartShouldSetPanResponderCapture: () => false,
       onPanResponderGrant: () => {
@@ -47,11 +59,11 @@ export default class Card extends Component {
           duration: 50
         }).start();
         typeof this.props.onPressIn === "function" ? this.props.onPressIn() : null;
-        if (this.props.location === "hand") {
+        if (['hand','deck-configuration'].includes(location)) {
           this.props.onPickUp();
         }
       },
-      onPanResponderMove: this.props.location === "hand"
+      onPanResponderMove: ['hand', 'deck-configuration'].includes(location)
         ? Animated.event([
           null, { dx: this.state.pan.x, dy: this.state.pan.y }
         ], {
@@ -90,14 +102,20 @@ export default class Card extends Component {
           duration: 50
         }).start();
 
-        if (this.props.location === "hand") {
-          this.props.onDrop(this.isInDropArea, this.hasEnough);
+        if (['hand','deck-configuration'].includes(location)) {
+          this.props.onDrop(
+            this.isInDropArea,
+            location === 'hand' ? this.hasEnough : undefined
+          );
           this.isInDropArea = false;
         }
 
         this.state.pan.setValue({ x: 0, y: 0 });
       }
-    })
+    });
+    this.setState({
+      panResponder,
+    });
   }
 
   componentDidMount() {
@@ -105,7 +123,7 @@ export default class Card extends Component {
 
     const { location } = this.props;
 
-    if (!["bench", "hand", "collection"].includes(location)) {
+    if (!["bench", "hand", "collection", 'deck-configuration'].includes(location)) {
       this.cardDealAudio.loadAsync(
         this.props.isActiveDiscovery
           ? require('../../../assets/audio/ui/discoverycast.mp3')
@@ -174,7 +192,7 @@ export default class Card extends Component {
   componentWillUnmount() {
     this._ismounted = false;
     if (typeof this.props.onPressOut === "function") this.props.onPressOut();
-    if (this.props.location === "hand") {
+    if (['hand','deck-configuration'].includes(this.props.location)) {
       this.props.onDrop(false, false);
     }
   }
@@ -233,7 +251,7 @@ export default class Card extends Component {
 
     return (
       <Animated.View
-        {...this.panResponder.panHandlers}
+        {...this.state.panResponder.panHandlers}
         style={{
           ...styles.cardContainer,
           ...(this.props.style || {}),

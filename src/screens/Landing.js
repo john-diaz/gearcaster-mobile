@@ -37,7 +37,7 @@ class Landing extends Component {
   }
   signOut = () => {
     AsyncStorage.removeItem('userCredentials').then(() => {
-      this.props.dispatch({ type: 'SET_USER', payload: null });
+      this.props.dispatch({ type: 'SET_AUTH_STATUS', payload: -1 });
     });
   }
   startTutorialDuel() {
@@ -86,7 +86,7 @@ class Landing extends Component {
               left: 0
             }}
           />
-          { this.props.user ? <Button
+          { this.props.authStatus === 1 ? <Button
             style={{
               ...globalStyles.cobbleBox,
               position: 'absolute',
@@ -116,8 +116,8 @@ class Landing extends Component {
               <Text bold style={{ textAlign: 'center' }}>A fast-paced mechanical card game</Text>
             </View>
             <Button
-              title={this.props.user ? "ENTER" : "START"}
-              onPress={this.props.user ? this.enterGame : this.startOnboarding}
+              title={this.props.authStatus === 1 ? "ENTER" : "START"}
+              onPress={this.props.authStatus === 1 ? this.enterGame : this.startOnboarding}
               style={{
                 minWidth: 193,
                 minHeight: 41,
@@ -133,6 +133,6 @@ class Landing extends Component {
   }
 }
 
-const mapStateToProps = state => ({ user: state.user });
+const mapStateToProps = state => ({ user: state.user, authStatus: state.authStatus });
 
 export default connect(mapStateToProps, null)(Landing);
