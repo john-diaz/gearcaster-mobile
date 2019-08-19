@@ -11,17 +11,22 @@ import store from './src/store';
 import LandingScreen from './src/screens/Landing';
 import DuelScreen from './src/screens/Duel';
 import DeckConfigurationScreen from './src/screens/DeckConfiguration';
+import OpenPacksScreen from './src/screens/OpenPacks';
 
 import { Text, Spinner } from './src/components/custom';
 // styles
 import globalStyles from './src/styles';
 import navigationService from './src/navigationService';
+import AdventureMode from './src/screens/AdventureMode';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 const AppNavigator = createStackNavigator(
   {
     Landing: LandingScreen,
     Duel: DuelScreen,
     DeckConfiguration: DeckConfigurationScreen,
+    OpenPacks: OpenPacksScreen,
+    AdventureMode: AdventureMode
   },
   {
     initialRouteName: 'Landing',
@@ -58,7 +63,8 @@ function getPersistenceFunctions() {
 
 export default class App extends React.Component {
   state = {
-    connection: false // socket.io connection
+    connection: false, // socket.io connection
+    authStatus: null
   }
   componentDidMount() {
     console.info('App mounted, connecting socket');
@@ -67,7 +73,8 @@ export default class App extends React.Component {
       const storeState = store.getState();
       this.setState({
         connection: storeState.connection,
-        authStatus: storeState.authStatus
+        authStatus: storeState.authStatus,
+        customAlert: storeState.customAlert
       });
     });
 
@@ -78,6 +85,8 @@ export default class App extends React.Component {
       'lucida-grande': require('./assets/fonts/LucidaGrande.ttf'),
       'lucida-grande-bold': require('./assets/fonts/LucidaGrandeBold.ttf')
     }).then(() => store.dispatch({ type: 'FONT_LOADED' }));
+
+    store.dispatch({ type: 'SET_AMBIENT', payload: 'DEFAULT' });
   }
   render() {
     return (
@@ -87,6 +96,25 @@ export default class App extends React.Component {
 
         {/* NAVIGATION */}
         <Provider store={store}>
+          {/* CUSTOM ALERT */}
+          {
+            this.state.customAlert
+            ? (
+              <View
+                style={{
+                  ...globalStyles.absoluteCenter,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  zIndex: 1000,
+                  padding: 60
+                }}
+              >
+                {this.state.customAlert.component}
+              </View>
+            )
+            : null
+          }
           {/* CONNECTING MODAL */}
           {
             !this.state.connection || this.state.authStatus === 0 ?
@@ -96,7 +124,7 @@ export default class App extends React.Component {
                 justifyContent: 'center',
                 alignItems: 'center',
                 backgroundColor: 'rgba(0,0,0,0.5)',
-                zIndex: 1000
+                zIndex: 2000
               }}
             >
               <View style={{

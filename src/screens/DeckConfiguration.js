@@ -17,6 +17,7 @@ import { capitalize } from '../helpers';
 import { Audio } from 'expo-av';
 import images from '../images';
 import { LinearGradient } from 'expo-linear-gradient';
+import Shop from '../components/DeckConfiguration/Shop';
 
 let rolloverAudio = new Audio.Sound();
 rolloverAudio.loadAsync(require('../../assets/audio/ui/rollover.mp3'));
@@ -35,16 +36,27 @@ class DeckConfiguration extends Component {
     dropLayout: { pageX: undefined, pageY: undefined, width: undefined, height: undefined },
     offsetIndex: 0,
     hoveringCard: null,
-    glowDropArea: new Animated.Value(0)
+    glowDropArea: new Animated.Value(0),
+    showingShop: false,
+    shopAnimation: new Animated.Value(0)
   }
   componentDidMount() {
     socket.on('connect', () => this.loadCollection);
-    this.loadCollection();
+    this.willFocusSubscription = this.props.navigation.addListener(
+      'willFocus',
+      () => {
+        this.setState({ selectedDeck: null });
+        this.loadCollection();
+      }
+    );
   }
   componentDidUpdate(prevProps) {
     if (!prevProps.user && !!this.props.user) {
       this.loadCollection();
     }
+  }
+  componentWillUnmount() {
+    this.willFocusSubscription.remove();
   }
   loadCollection() {
     const { user } = this.props;
@@ -147,6 +159,15 @@ class DeckConfiguration extends Component {
 
     return size;
   }
+  deckSizeLimit(selectedDeck) {
+    const deck = this.state.collection.configuredDecks[selectedDeck];
+
+    if (!deck) return undefined;
+
+    const size = this.totalDeckSize(selectedDeck);
+
+    return size < 30 ? '30' : '50';
+  }
   /**
    * Called by the side bar when the user selects a deck
    */
@@ -191,7 +212,7 @@ class DeckConfiguration extends Component {
 
       /* SAVE EVERYTHING IN STATE */
       deck.cards = Object.values(deckCardsObj);
-      deck.isValid = isValid;
+      deck.valid = isValid;
 
       this.state.collection.spareCards = Object.values(spareCardsObj);
 
@@ -241,12 +262,29 @@ class DeckConfiguration extends Component {
 
       /* SAVE EVERYTHING IN STATE */
       deck.cards = Object.values(deckCardsObj);
-      deck.isValid = isValid;
+      deck.valid = isValid;
 
       this.state.collection.spareCards = Object.values(spareCardsObj);
 
       this.setState(this.state);
     });
+  }
+
+  toggleShop() {
+    Animated.timing(this.state.shopAnimation, {
+      toValue: this.state.showingShop ? 0 : 1,
+      fromValue: !this.state.showingShop ? 0 : 1,
+      duration: 1000
+    }).start();
+
+    
+    new Audio.Sound().loadAsync(require('../../assets/audio/ui/drawer.mp3'), { shouldPlay: true });
+    
+    if (!this.state.showingShop) {
+      new Audio.Sound().loadAsync(require('../../assets/audio/ui/enter-store.mp3'), { shouldPlay: true });
+    }
+
+    this.setState({ showingShop: !this.state.showingShop });
   }
   
   render() {
@@ -259,6 +297,26 @@ class DeckConfiguration extends Component {
 
     return (
       <View style={{ flex: 1, backgroundColor: '#776969' }}>
+        <Animated.View
+          style={{
+            ...globalStyles.absoluteCenter,
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            opacity: this.state.shopAnimation,
+            left: this.state.shopAnimation.interpolate({
+              inputRange: [0, 1],
+              outputRange: [5000, 0]
+            }),
+            zIndex: 10,
+            paddingVertical: 6,
+            paddingHorizontal: 42
+          }}
+        >
+          <Shop
+            onClose={() => this.toggleShop()}
+          />
+        </Animated.View>
         <View style={styles.deckConfigurationView}>
           {/* HEADER */}
           <View style={styles.headerContainer}>
@@ -298,20 +356,83 @@ class DeckConfiguration extends Component {
                     flex: 2,
                     marginHorizontal: 15
                   }}
+
+                  onPress={() => this.toggleShop()}
                 />
                 <Button
                   title="Open Packs"
                   stoneContainer
                   containerStyle={{
                     flex: 2,
-                    marginHorizontal: 15
+                    marginHorizontal: 15,
+                    position: 'relative',
+                    overflow: 'visible'
                   }}
-                />
+                  onPress={() => this.props.navigation.navigate('OpenPacks')}
+                >
+                  {
+                    Object.values(this.props.user.unopenedPacks).length
+                    ? <View
+                        style={{
+                          backgroundColor: '#FF3336',
+                          borderColor: '#DBC25E',
+                          borderWidth: 1,
+                          borderRadius: 1,
+                          paddingVertical: 3,
+                          paddingHorizontal: 8,
+                          position: 'absolute',
+                          bottom: -9,
+                          right: -14
+                        }}
+                      >
+                        <Text bold style={{ fontSize: 12 }}>{Object.values(this.props.user.unopenedPacks).length}</Text>
+                      </View>
+                    : null
+                  }
+                </Button>
                 <Button
-                  title="Play"
+                  title={
+                    user.adventureSession
+                      ? (user.adventureSession.gameID ? "Resume Duel" : "Resume")
+                      : selectedDeck ? "Play" : "Select a Deck"}
                   stoneContainer
                   containerStyle={{
                     flex: 2
+                  }}
+                  disabled={!user.adventureSession && (!selectedDeck || !user.configuredDecks[selectedDeck].valid)}
+                  charged={(!user.adventureSession && selectedDeck) || (user.adventureSession && user.adventureSession.gameID)}
+
+                  onPress={() => {
+                    if (user.adventureSession) {
+                      if (user.adventureSession.gameID) {
+                        const adventureSession = this.props.user.adventureSession;
+
+                        socket.emit('adventure.startDuel', (err, gameID) => {
+                          if (err) Alert.alert(err);
+                          else {
+                            this.props.navigation.navigate('Duel', {
+                              gameID,
+                              selectedDeck: adventureSession.deckName
+                            });
+                          }
+                        });
+                      } else {
+                        this.props.navigation.navigate('AdventureMode');
+                      }
+                    } else if (selectedDeck && user.configuredDecks[selectedDeck].valid) {
+                      socket.emit('adventure.new', selectedDeck, (err) => {
+                        if (err) Alert.alert(err);
+                        else {
+                          const revealSound = new Audio.Sound();
+                          revealSound.loadAsync(
+                            require('../../assets/audio/ui/revealDeck.mp3'),
+                            { shouldPlay: true }
+                          );
+
+                          this.props.navigation.navigate('AdventureMode');
+                        }
+                      });
+                    }
                   }}
                 />
               </View>
@@ -427,54 +548,83 @@ class DeckConfiguration extends Component {
                   <Text bold style={{ fontSize: 16, textAlign: 'center' }}>Choose a Deck</Text>
                 </View>
                 {/* LIST */}
-                <ScrollView style={{ flex: 1 }}>
+                <View style={{ flex: 1, position: 'relative' }}>
                   {
-                    ["classic", "steampunk"].map((deckName, i) => {
-                      const deck = this.props.user.configuredDecks[deckName];
-
-                      return (
-                        <TouchableHighlight
-                          onPress={() => { if (deck) this.setDeck(deckName) }}
-                          activeOpacity={deck ? 1 : 0.85}
-                          key={deckName}
+                    user.adventureSession && user.adventureSession.gameID 
+                    ? (
+                      <View
+                        style={{
+                          ...globalStyles.absoluteCenter,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          backgroundColor: 'rgba(0,0,0,0.8)',
+                          zIndex: 100,
+                          padding: 20
+                        }}
+                      >
+                        <Text
+                          bold
+                          style={{
+                            textAlign: 'center'
+                          }}
                         >
-                          <ImageBackground
-                            key={deckName}
-                            style={{
-                              ...styles.deckContainer,
-                              opacity: deck ? 1 : 0.8,
-                              backgroundColor: deck ? '#BDBDBD' : '#4F4F4F'
-                            }}
-                            source={require('../../assets/img/ui/backgrounds/bg.png')}
-                            resizeMode='repeat'
-                          >
-                            <CardBack
-                              faction={deckName}
-                              style={{
-                                height: 52,
-                                width: 38
-                              }}
-                              imageStyle={{
-                                height: 52,
-                                width: 38,
-                                borderWidth: 1,
-                                borderRadius: 3
-                              }}
-                            />
-                            <View style={styles.deckContent}>
-                              <Text bold style={{ fontSize: 16 }}>{capitalize(deckName)} deck</Text>
-                              {
-                                deck
-                                  ? <Text style={{ fontSize: 14 }}>{this.totalDeckSize(deckName)}/30</Text>
-                                  : <Text bold style={{ fontSize: 12 }}>reach phase {i} in Adventure Mode to unlock</Text>
-                              }
-                            </View>
-                          </ImageBackground>
-                        </TouchableHighlight>
-                      )
-                    })
+                          You can not edit decks while in a battle. Finish your battle and then come back
+                        </Text>
+                      </View>
+                    )
+                    : null
                   }
-                </ScrollView>
+                  <ScrollView style={{ flex: 1 }}>
+                    {
+                      ["classic", "steampunk"].map((deckName, i) => {
+                        const deck = this.props.user.configuredDecks[deckName];
+
+                        return (
+                          <TouchableHighlight
+                            onPress={() => { if (deck) this.setDeck(deckName) }}
+                            activeOpacity={deck ? 1 : 0.85}
+                            key={deckName}
+                          >
+                            <ImageBackground
+                              key={deckName}
+                              style={{
+                                ...styles.deckContainer,
+                                opacity: deck ? 1 : 0.8,
+                                backgroundColor: deck ? '#BDBDBD' : '#4F4F4F'
+                              }}
+                              source={require('../../assets/img/ui/backgrounds/bg.png')}
+                              resizeMode='repeat'
+                            >
+                              <CardBack
+                                faction={deckName}
+                                style={{
+                                  height: 52,
+                                  width: 38
+                                }}
+                                imageStyle={{
+                                  height: 52,
+                                  width: 38,
+                                  borderWidth: 1,
+                                  borderRadius: 3
+                                }}
+                              />
+                              <View style={styles.deckContent}>
+                                <Text bold style={{ fontSize: 16 }}>{capitalize(deckName)} deck</Text>
+                                {
+                                  deck
+                                    ? <Text style={{ fontSize: 14, color: deck.valid ? 'white' : 'red' }}>{this.totalDeckSize(deckName)}/{this.deckSizeLimit(deckName)}</Text>
+                                    : <Text bold style={{ fontSize: 12 }}>
+                                      Coming soon...{/* reach phase {i} in Adventure Mode to unlock */}
+                                      </Text>
+                                }
+                              </View>
+                            </ImageBackground>
+                          </TouchableHighlight>
+                        )
+                      })
+                    }
+                  </ScrollView>
+                </View>
               </View>
             )
             : ( /* SHOW CARDS IN DECK */
@@ -486,7 +636,13 @@ class DeckConfiguration extends Component {
                   resizeMode='cover'
                 >
                   <Text bold style={{ fontSize: 18, textAlign: 'right' }}>{capitalize(selectedDeck)} Deck</Text>
-                  <Text style={{ fontSize: 16, textAlign: 'right' }}>{this.totalDeckSize(selectedDeck)}/30</Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      textAlign: 'right',
+                      color: collection.configuredDecks[selectedDeck].valid ? 'white' : 'red'
+                    }}
+                  >{this.totalDeckSize(selectedDeck)}/{this.deckSizeLimit(selectedDeck)}</Text>
                 </ImageBackground>
                 <Animated.View
                   style={{
@@ -649,7 +805,8 @@ const styles = StyleSheet.create({
     borderWidth: 6,
     borderColor: '#4F4F4F',
     alignItems: 'stretch',
-    alignSelf: 'stretch'
+    alignSelf: 'stretch',
+    position: 'relative'
   },
   collectionHeader: {
     backgroundColor: '#735720',

@@ -10,6 +10,8 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { Text } from '../custom';
 import { CardBack, CardPack } from './Card';
 import navigationService from '../../navigationService';
+import store from '../../store';
+import images from '../../images';
 
 export default class PostDuel extends Component {
   animation = new Animated.Value(0);
@@ -20,6 +22,7 @@ export default class PostDuel extends Component {
       toValue: 1,
       duration: 800
     }).start();
+    store.dispatch({ type: 'SET_AMBIENT', payload: 'INTERMEDIATE' });
   }
 
   get rewardPack() {
@@ -68,7 +71,7 @@ export default class PostDuel extends Component {
               }}
             >
               <Image
-                source={require('../../../assets/img/ui/card-covers/classic.png')}
+                source={images.avatars[selfUser.avatar]}
                 resizeMode='cover'
                 style={styles.avatar}
               />
@@ -108,7 +111,11 @@ export default class PostDuel extends Component {
                 if (selfUser.needsToLearn.includes("intro-duel")) {
                   navigationService.navigate('Landing');
                 } else {
-                  navigationService.navigate('DeckConfiguration');
+                  if (selfUser.adventureSession) {
+                    navigationService.navigate('AdventureMode');
+                  } else {
+                    navigationService.navigate('DeckConfiguration');
+                  }
                 }
               }}
             >
@@ -132,7 +139,7 @@ export default class PostDuel extends Component {
             {/* PACK TITLE */}
             <View style={styles.subHeaderContainer}>
               <View style={styles.subHeader}>
-                <Text style={{ fontSize: 12 }} bold>{rewardPack.prefix} Pack</Text>
+                <Text style={{ fontSize: 12, textAlign: 'center' }} bold>{rewardPack.prefix} Pack</Text>
               </View>
             </View>
           </Animated.View>

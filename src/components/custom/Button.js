@@ -5,14 +5,44 @@ import { LinearGradient } from 'expo-linear-gradient';
 import globalStyles from '../../styles';
 import Text from './Text';
 
-let buttonPress = new Audio.Sound();
-let buttonRelease = new Audio.Sound();
-buttonPress.loadAsync(require('../../../assets/audio/ui/buttonpress.mp3'));
-buttonRelease.loadAsync(require('../../../assets/audio/ui/buttonrelease.mp3'));
-
 export default class AppButton extends Component {
   state = {
     activePress: false
+  }
+  get gradientColors() {
+    if (!this.shouldRespond) {
+      return ['#828282', '#828282']
+    } else if (this.props.urgent) {
+      return !this.state.activePress ? ['#db775e', '#a84e48'] : ['#a84e48', '#db775e']
+    } else if (this.props.charged) {
+      return !this.state.activePress ? ['#33E1FF', '#55AA8A'] : ['#55AA8A', '#33E1FF']
+    } else {
+      return !this.state.activePress ? ['#DBC25E', '#A89548'] : ['#A89548', '#DBC25E']
+    }
+  }
+
+  // lets the button know if it should respond when interacted with
+  // it takes into account this.props.disabled
+  // and this.props.tutorialPhase, if there is one
+  get shouldRespond() {
+    const { disabled, tutorialPhase } = this.props;
+
+    if (disabled) return false;
+
+    if (!tutorialPhase) {
+      return true;
+    } else if (
+      [
+        'INTRO_ENDTURN',
+        'ENDTURN-2',
+        'PENDING_INTRO_DISCOVERY',
+        'PENDING_WINGIT'
+      ].includes(tutorialPhase.step)
+    ) {
+      return true;
+    }
+    
+    return false;
   }
   render() {
     return (
@@ -25,8 +55,8 @@ export default class AppButton extends Component {
             borderColor: '#373636',
             borderBottomLeftRadius: 14,
             borderBottomRightRadius: 14,
-            padding: 5,
-            overflow: 'hidden',
+            padding: 3,
+            paddingTop: 0,
             justifyContent: 'center',
             alignContent: 'center'
           } : {}),
@@ -58,14 +88,20 @@ export default class AppButton extends Component {
         }
         <TouchableOpacity
           activeOpacity={0.95}
-          onPress={this.props.onPress}
+          onPress={!this.shouldRespond ? undefined : this.props.onPress}
           onPressIn={() => {
-            buttonPress.playFromPositionAsync(0);
-            this.setState({ activePress: true });
+            if (this.shouldRespond) {
+              let buttonPress = new Audio.Sound();
+              buttonPress.loadAsync(require('../../../assets/audio/ui/buttonpress.mp3'), { shouldPlay: true, volume: 0.6 });
+              this.setState({ activePress: true });
+            }
           }}
           onPressOut={() => {
-            buttonRelease.playFromPositionAsync(0);
-            this.setState({ activePress: false });
+            if (this.shouldRespond) {
+              let buttonRelease = new Audio.Sound();
+              buttonRelease.loadAsync(require('../../../assets/audio/ui/buttonrelease.mp3'), { shouldPlay: true });
+              this.setState({ activePress: false });
+            }
           }}
           style={{zIndex: 10}}
         >
@@ -73,9 +109,18 @@ export default class AppButton extends Component {
             style={{
               position: 'relative',
               borderRadius: 6,
-              borderColor: !this.props.urgent ? '#BDA753' : '#bd7153',
+              ...(this.props.stoneContainer ? {
+                borderTopLeftRadius: 0,
+                borderTopRightRadius: 0
+              } : {}),
+              borderColor: (
+                this.props.urgent ? '#bd7153'
+                : this.props.charged ? '#39F'
+                : !this.shouldRespond ? '#828282'
+                : '#BDA753'
+              ),
               borderWidth: 2,
-              paddingVertical: 10,
+              paddingVertical: 8,
               paddingHorizontal: 15,
               alignItems: 'center',
               justifyContent: 'center',
@@ -83,16 +128,14 @@ export default class AppButton extends Component {
             }}
           >
             <LinearGradient
-              colors={
-                !this.props.urgent
-                  ? !this.state.activePress
-                    ? ['#DBC25E', '#A89548']
-                    : ['#A89548', '#DBC25E']
-                  : !this.state.activePress
-                    ? ['#db775e', '#a84e48']
-                    : ['#a84e48', '#db775e']
-              }
-              style={{...globalStyles.absoluteCenter, borderRadius: 4}}
+              colors={this.gradientColors}
+              style={{
+                ...globalStyles.absoluteCenter,
+                ...(this.props.stoneContainer ? {
+                  borderTopLeftRadius: 0,
+                  borderTopRightRadius: 0
+                } : {}),
+              }}
             />
             { this.props.title ? <Text bold style={this.props.textStyle}>{this.props.title}</Text> : null }
             { this.props.children ? this.props.children : null }

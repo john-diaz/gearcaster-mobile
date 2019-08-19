@@ -62,7 +62,7 @@ export function uuidv4() {
 
 export const getRarityColor = (rarity) => {
   return rarity === 'rare' ? '#7957D5'
-        : rarity === 'epic' ? 'rgb(220, 255, 0)'
+        : rarity === 'epic' ? '#0099ca'
         : rarity === 'legendary' ? '#fcef78'
         : 'black'
 }

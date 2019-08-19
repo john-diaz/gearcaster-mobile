@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Text } from '../custom';
+import { Text, ArrowButton } from '../custom';
 import globalStyles from '../../styles';
 import { Entypo } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -49,7 +49,7 @@ export default class PlayerResources extends Component {
             });
           } else {
             const damageAudio = new Audio.Sound();
-            damageAudio.loadAsync(require('../../../assets/audio/ui/damage.mp3')).then(() => {
+            damageAudio.loadAsync(require('../../../assets/audio/ui/negativePluck.mp3')).then(() => {
               damageAudio.playAsync();
             });
           }
@@ -67,10 +67,18 @@ export default class PlayerResources extends Component {
     });
   }
   render() {
-    const { resources } = this.props;
+    const { resources, tutorialPhase, opponent } = this.props;
 
     return (
       <View style={styles.resourcesContainer}>
+        {/* TUTORIAL ARROW */}
+        {
+          (tutorialPhase && tutorialPhase.step === 'INTRO_RESOURCES' && !opponent) || // arrow for self resources
+          (tutorialPhase && tutorialPhase.step === 'INTRO_ENEMYHEALTH' && opponent)  // arrow for enemy health
+          ? <ArrowButton style={{ position: 'absolute', top: 5, right: -140, width: 138 }}/>
+          : null
+        }
+
         {/* HEALTH BAR CONTAINER*/}
         <View style={styles.healthContainer}>
           <View

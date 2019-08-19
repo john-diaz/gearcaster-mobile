@@ -6,7 +6,7 @@ import {
   Animated,
   PanResponder
 } from 'react-native';
-import { Text } from '../custom';
+import { Text, ArrowButton } from '../custom';
 import images from '../../images';
 import CardInfo from './CardInfo';
 import { hasEnoughResources, getRarityColor } from '../../helpers';
@@ -18,7 +18,7 @@ import DeltaBubble from './DeltaBubble';
 export default class Card extends Component {
   _ismounted = false;
   state = {
-    panResponder: {},
+    panResponder: { panHandlers: {} },
 
     opacityAnim: new Animated.Value(0),
     scaleAnim: new Animated.Value(2),
@@ -32,21 +32,54 @@ export default class Card extends Component {
   isInDropArea = false;
   cardDealAudio = new Audio.Sound();
 
+  get shouldRespond() {
+    const { tutorialPhase, card } = this.props;
+
+    if (tutorialPhase) console.log('[', card.id,'] - ', tutorialPhase.step);
+
+    if (!tutorialPhase) {
+      return true;
+    } else {
+      // cases where it should allow in the tutorial
+      if (
+        ['INTRO_CAST', 'PENDING_CAST'].includes(tutorialPhase.step) &&
+        card.id === "Rapid Bot"
+      ) { return true }
+      else if (
+        ['INTRO_STRENGTH2', 'PENDING_CAST2', 'INTRO_BOOT'].includes(tutorialPhase.step) &&
+        ["Aluminum Bot", "Minion Bot"].includes(card.id)
+      ) { return true }
+      else if (
+        ['INTRO_DISCOVERY', 'PENDING_WINGIT'].includes(tutorialPhase.step) &&
+        card.id === "Controlled Explosion"
+      ) { return true }
+      else // card not allowed in tutorial
+      { return false }
+    }
+  }
+
   componentWillMount() {
     this.setPanResponder(this.props.location);
   }
   componentWillReceiveProps(nextProps) {
-    if (nextProps.location !== this.props.location) {
-      // console.log('change in card location');
-      this.setPanResponder(nextProps.location);
-    }
+    this.setPanResponder(nextProps.location);
   }
 
   setPanResponder(location) {
+    const shouldRespond = this.shouldRespond;
+    console.log("SET", shouldRespond)
+
     let panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onStartShouldSetPanResponderCapture: () => false,
       onPanResponderGrant: () => {
+
+        // DONT allow focusing on the card
+        // IF it should NOT respond, UNLESS tutorialPhase is in 'PENDING'
+        if (!shouldRespond && !this.props.tutorialPhase.step.includes('PENDING')) {
+          return console.log(false);
+        }
+
         this.setState({ focused: true });
         this.state.opacityAnim.setValue(1);
 
@@ -58,12 +91,13 @@ export default class Card extends Component {
           toValue: 1,
           duration: 50
         }).start();
-        typeof this.props.onPressIn === "function" ? this.props.onPressIn() : null;
+
+        if (this.props.onPressIn) this.props.onPressIn();
         if (['hand','deck-configuration'].includes(location)) {
           this.props.onPickUp();
         }
       },
-      onPanResponderMove: ['hand', 'deck-configuration'].includes(location)
+      onPanResponderMove: shouldRespond && ['hand', 'deck-configuration'].includes(location)
         ? Animated.event([
           null, { dx: this.state.pan.x, dy: this.state.pan.y }
         ], {
@@ -109,6 +143,8 @@ export default class Card extends Component {
           );
           this.isInDropArea = false;
         }
+
+        if (typeof this.props.onPressOut === "function") this.props.onPressOut();
 
         this.state.pan.setValue({ x: 0, y: 0 });
       }
@@ -176,7 +212,11 @@ export default class Card extends Component {
         }).start();
       });
     }
-    else if (prevProps.card.attributes.strength !== this.props.card.attributes.strength) {
+    else if (
+      prevProps.card.attributes &&
+      this.props.card.attributes &&
+      prevProps.card.attributes.strength !== this.props.card.attributes.strength
+    ) {
       if (this._strengthInterval) clearTimeout(this._strengthInterval);
 
       // strength display
@@ -245,9 +285,27 @@ export default class Card extends Component {
 
     return hasEnoughResources(user.resources, card.attributes.castCost);
   }
+
+  get tutorialArrow() {
+    const { tutorialPhase, card } = this.props;
+
+    if (!tutorialPhase) return null;
+
+    if (tutorialPhase.step === 'INTRO_CAST' && card.id === "Rapid Bot") {
+      return <ArrowButton style={{ position: 'absolute', top: -80, width: 100, zIndex: 100 }} direction='down'/>
+    }
+    if (tutorialPhase.step === 'INTRO_DISCOVERY' && card.id === "Controlled Explosion") {
+      return <ArrowButton style={{ position: 'absolute', top: -80, width: 100, zIndex: 100 }} direction='down'/>
+    }
+  }
   render() {
-    const { card, location, isAggro } = this.props;
+    const { card, location, isAggro, tutorialPhase } = this.props;
     const { aggroAnim, opacityAnim, focused, strengthDelta } = this.state;
+
+    if (!card) return <View />;
+    if (!card.attributes) {
+      console.log({ location, card });
+    }
 
     return (
       <Animated.View
@@ -296,10 +354,12 @@ export default class Card extends Component {
             : null
         }
 
+        {/* TUTORIAL ARROW */}
+        {this.tutorialArrow}
+
         {/* BOOTING SCREEN */}
         {
           (location == "bench" || location == "bench-opponent") &&
-          card.attributes.bootTurnsRequired &&
           card._state.turnsTillBoot > 0
             ? <View
                 style={{
@@ -401,13 +461,78 @@ export class CardBack extends Component {
 }
 
 export class CardPack extends Component {
+  state = {
+    pan: new Animated.ValueXY(),
+    scaleAnim: new Animated.Value(1),
+  }
+
+  panResponder = { panHandlers: {} }
+  componentWillMount() {
+    if (!this.props.dropArea) return;
+
+    this.panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => false,
+      onPanResponderGrant: () => {
+        Animated.spring(this.state.scaleAnim, {
+          toValue: 1.3,
+          duration: 50
+        }).start();
+
+        this.props.onPickUp();
+      },
+      onPanResponderMove: Animated.event([
+          null, { dx: this.state.pan.x, dy: this.state.pan.y }
+        ], {
+          listener: (e, gestureState) => {
+            const { moveX, moveY } = gestureState;
+
+            const { pageX, pageY, width, height } = this.props.dropArea;
+
+            const pageX1 = pageX + width;
+            const pageY1 = pageY + height;
+
+            if (
+              this.isInDropArea &&
+              (moveX < pageX || moveX > pageX1) ||
+              (moveY < pageY || moveY > pageY1)
+            ) {
+              this.isInDropArea = false;
+            } else if (
+              !this.isInDropArea &&
+              (moveX >= pageX && moveX <= pageX1) &&
+              (moveY >= pageY && moveY <= pageY1)
+            ) {
+              this.isInDropArea = true;
+            };
+          }
+        }),
+      onPanResponderRelease: () => {
+        Animated.spring(this.state.scaleAnim, {
+          toValue: 1,
+          duration: 50
+        }).start();
+
+        this.props.onDrop(this.isInDropArea);
+        this.isInDropArea = false;
+
+        this.state.pan.setValue({ x: 0, y: 0 });
+      }
+    });
+  }
   render() {
     return (
-      <View
+      <Animated.View
+        {...this.panResponder.panHandlers}
         style={{
+          ...styles.cardContainer,
           position: 'relative',
           overflow: 'visible',
-          ...this.props.containerStyle
+          ...this.props.containerStyle,
+          transform: [
+            { scale: this.state.scaleAnim },
+            ...this.state.pan.getTranslateTransform()
+          ],
         }}
       >
         {
@@ -415,7 +540,9 @@ export class CardPack extends Component {
             <View
               key={i}
               style={{
-                ...globalStyles.absoluteCenter,
+                position: 'absolute',
+                top: 0,
+                left: 0,
                 justifyContent: 'center',
                 alignItems: 'center',
                 overflow: 'visible',
@@ -435,7 +562,7 @@ export class CardPack extends Component {
             </View>
           )
         }
-      </View>
+      </Animated.View>
     )
   }
 }
@@ -448,6 +575,7 @@ export const styles = StyleSheet.create({
     shadowColor: 'rgba(0,0,0,0.5)',
     shadowOpacity: 6,
     shadowOffset: { x: 0, y: 0 },
+    overflow: 'visible'
   },
   cardImage: {
     height: 100,

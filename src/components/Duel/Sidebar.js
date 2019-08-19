@@ -27,7 +27,7 @@ export default class Sidebar extends Component {
         </View>
         <View
           style={{
-            ...globalStyles.fadedCobblebox,
+            // ...globalStyles.fadedCobblebox,
             flex: 1,
             maxHeight: 265
           }}

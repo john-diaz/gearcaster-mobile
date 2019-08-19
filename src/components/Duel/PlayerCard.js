@@ -3,6 +3,7 @@ import { View, Image, Animated } from 'react-native';
 import Card from './Card';
 import { Text, Button } from '../custom';
 import socket from '../../socket';
+import images from '../../images';
 
 export default class PlayerCard extends Component {
   _isMounted = false;
@@ -67,12 +68,14 @@ export default class PlayerCard extends Component {
   endTurn = () => {
     this.clearInterval();
     socket.emit("duel.endTurn");
+
+    if (this.props.onTurnEnded) this.props.onTurnEnded();
   }
   render() {
     return(
       <Animated.View
         style={{
-          width: 242,
+          width: 270,
           backgroundColor: 'rgba(255,255,255,0.73)',
           padding: 10,
           flexDirection: 'row',
@@ -107,7 +110,7 @@ export default class PlayerCard extends Component {
         }}
       >
         <Image
-          source={require('../../../assets/img/ui/card-covers/classic.png')}
+          source={images.avatars[this.props.avatar]}
           resizeMode='cover'
           style={{
             height: 68,
@@ -135,7 +138,7 @@ export default class PlayerCard extends Component {
           <Text
             style={{ color: '#7957D5', fontSize: 16, marginTop: 5, marginBottom: 2 }}
             bold
-          >{this.props.player.username}</Text>
+          >{this.props.player.displayName}</Text>
           <Text
             style={{ color: '#828282', fontSize: 14 }}
             bold
@@ -153,21 +156,25 @@ export default class PlayerCard extends Component {
                     Acting{this.state.intervalTimeLeft > 0 ? ` (${this.state.intervalTimeLeft} seconds!)` : '...'}
                   </Text>
               : !this.props.player.standingBy // self player
-                  ? <Button
-                    title={`End Turn ${ this.state.intervalTimeLeft > 0 ? `(${this.state.intervalTimeLeft})` : '' }`}
-                    urgent={this.state.intervalTimeLeft > 0}
-                    onPress={this.endTurn}
-                    style={{
-                      height: 32,
-                      paddingVertical: 0,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      alignSelf: 'stretch'
-                    }}
-                    textStyle={{
-                      fontSize: 14
-                    }}
-                  />
+                  ? (
+                    <Button
+                      title={`End Turn ${ this.state.intervalTimeLeft > 0 ? `(${this.state.intervalTimeLeft})` : '' }`}
+                      urgent={this.state.intervalTimeLeft > 0}
+                      onPress={this.endTurn}
+                      style={{
+                        height: 32,
+                        paddingVertical: 0,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        alignSelf: 'stretch'
+                      }}
+                      textStyle={{
+                        fontSize: 14
+                      }}
+
+                      tutorialPhase={this.props.tutorialPhase}
+                    />
+                  )
                   : <Text bold style={{ color: '#444', fontSize: 16, marginTop: 5  }}>
                     [ Turn Ended ]
                   </Text>

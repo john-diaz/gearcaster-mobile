@@ -19,11 +19,14 @@ import Card, { CardBack, styles as cardStyles } from '../components/Duel/Card';
 import images from '../images';
 import { arraysEqual } from '../helpers';
 import PostDuel from '../components/Duel/PostDuel';
+import Dialogue from '../components/Duel/Dialogue';
 
 class Duel extends Component {
   _ismounted = false; // https://stackoverflow.com/questions/39767482/is-there-a-way-to-check-if-the-react-component-is-unmounted
 
-  state = {
+  state = {} // set in `this.init()` to this_initialState because React Navigation does not re-mount the component
+
+  _initialState = {
     attemptingJoin: false,
     // game state
     game: null,
@@ -35,6 +38,7 @@ class Duel extends Component {
     finishedInfo: null,
     // layout stuff
     benchLayout: { pageX: undefined, pageY: undefined, width: undefined, height: undefined },
+    tutorialPhase: null,
     // animation stuff
     playercardAnim: new Animated.Value(1), // hidding/showing player cards in combat animation
     benchGlow: new Animated.Value(0), // indicating where to drop cards
@@ -43,18 +47,32 @@ class Duel extends Component {
   }
   newDeckAudio = new Audio.Sound();
 
-  componentWillMount() {
-    this.newDeckAudio
-      .loadAsync(require('../../assets/audio/ui/newDeck.mp3'))
-      .then(() => {
-        this.newDeckAudio.setVolumeAsync(0.1)
-      });
-  }
   componentDidMount() {
     this._ismounted = true;
+    this.willFocusSubscription = this.props.navigation.addListener(
+      'willFocus',
+      () => {
+        this.init();
+      }
+    );
+    this.willBlurSubscription = this.props.navigation.addListener(
+      'willBlur',
+      () => {
+        this.unload();
+      }
+    );
+  }
+  init() {
+    this.props.dispatch({ type: 'SET_AMBIENT', payload: 'DUEL' });
+
+    this.setState({...this._initialState}); // force reset on state when navigating
 
     socket.on('gameData', (game) => {
       if (!this._ismounted) return;
+
+      if (!this.state.game && game.challenge.botConfig.difficulty === 0) {
+        this.initTutorial();
+      }
 
       this.setState({ game });
     });
@@ -88,6 +106,10 @@ class Duel extends Component {
     });
 
     this.joinGame();
+  }
+  unload() {
+    socket.emit("duel.leave");
+    this.props.dispatch({ type: 'SET_AMBIENT', payload: 'DEFAULT' });
   }
   componentDidUpdate(prevProps, prevState) {
     // previous update was authenticating. Now done authenticating AND there is a 
@@ -139,7 +161,10 @@ class Duel extends Component {
   }
   componentWillUnmount() {
     this._ismounted = false;
-    socket.emit("duel.leave");
+    this.willFocusSubscription.remove();
+    this.willBlurSubscription.remove();
+
+    this.unload();
   }
   joinGame() {
     const gameID = this.props.navigation.getParam('gameID');
@@ -207,7 +232,7 @@ class Duel extends Component {
         toValue: 1,
         duration: 100
       }).start();
-      this.setState({ virtualDuel: null, isAggro: [] });
+      this.setState({ virtualDuel: null, isAggro: [] }, this.onFinishCombatIntructions);
     }, (combatInstructions.length + 1) * stepDuration);
   }
   applyCombatInstruction = ({ type, payload, outcomeDuel }) => {
@@ -248,6 +273,32 @@ class Duel extends Component {
           ]
         });
         break;
+    }
+  }
+  onTurnEnded() {
+    const { tutorialPhase } = this.state;
+    if (tutorialPhase && tutorialPhase.step === 'INTRO_ENDTURN') { // TUTORIAL EVENT
+      this.setState({ tutorialPhase: tutorialPhases['PENDING_FIRSTCOMBAT'] });
+    }
+    else if (tutorialPhase && tutorialPhase.step === 'ENDTURN-2') { // TUTORIAL EVENT
+      this.setState({ tutorialPhase: tutorialPhases['PENDING_INTRO_STRENGTH'] });
+    }
+  }
+  onFinishCombatIntructions() {
+    const { tutorialPhase } = this.state;
+
+    if (tutorialPhase && tutorialPhase.step === 'PENDING_FIRSTCOMBAT') { // TUTORIAL EVENT
+      this.setState({ tutorialPhase: tutorialPhases['INTRO_ENEMYHEALTH'] });
+    }
+    if (tutorialPhase && tutorialPhase.step === 'PENDING_INTRO_STRENGTH') { // TUTORIAL EVENT
+      this.setState({ tutorialPhase: tutorialPhases['INTRO_STRENGTH'] });
+    }
+    if (tutorialPhase && tutorialPhase.step === 'PENDING_INTRO_DISCOVERY') {
+      console.log('set intro discovery')
+      this.setState({ tutorialPhase: tutorialPhases['INTRO_DISCOVERY'] });
+    }
+    if (tutorialPhase && tutorialPhase.step === 'PENDING_WINGIT') {
+      this.setState({ tutorialPhase: tutorialPhases['WINGIT'] });
     }
   }
   playBotActiveFX() {
@@ -300,6 +351,30 @@ class Duel extends Component {
       return duel.players.challenger;
     }
   }
+  get gameSelfPlayer() {
+    const userID = this.props.user.id;
+    const { game } = this.state;
+
+    if (!game) return null;
+
+    if (userID == game.challenger.id) {
+      return game.challenger;
+    } else {
+      return game.defendant;
+    }
+  }
+  get gameOpponent() {
+    const userID = this.props.user.id;
+    const { game } = this.state;
+
+    if (!game) return null;
+
+    if (userID == game.challenger.id) {
+      return game.defendant;
+    } else {
+      return game.challenger;
+    }
+  }
 
   showUserError = (messageString) => {
     if (this._userErrorInterval) clearTimeout(this._userErrorInterval);
@@ -326,6 +401,23 @@ class Duel extends Component {
     }, 2600)
   }
 
+  initTutorial() {
+    this.props.dispatch({
+      type: 'SET_ALERT',
+      payload: {
+        component: (
+          <Dialogue
+            text="Welcome to the Dojo. I will be guiding you through your first duel."
+            onPress={() => {
+              this.props.dispatch({ type: 'SET_ALERT', payload: null });
+              this.setState({ tutorialPhase: tutorialPhases['INTRO_EXPLAIN'] });
+            }}
+          />
+        )
+      }
+    });
+  }
+
   render() {
     // loading screen
     if (!this.state.game || !this.computedDuel) return (
@@ -338,6 +430,8 @@ class Duel extends Component {
         </View>
       </ImageBackground>
     );
+
+    const { tutorialPhase } = this.state;
 
     const opponentEmptySlots = Math.max(0, this.opponentPlayer.configuration.benchSize - this.opponentPlayer.bench.length);
     const opponentEmptySlotsArray = Array.apply(null, {length: opponentEmptySlots});
@@ -405,14 +499,54 @@ class Duel extends Component {
         {/* BOARD CONTAINER */}
         <View style={styles.boardContainer}>
           <View style={styles.resourcesContainer}>
-            <PlayerResources resources={this.opponentPlayer.resources}/>
-            <PlayerResources resources={this.selfPlayer.resources}/>
+            <PlayerResources
+              resources={this.opponentPlayer.resources}
+              tutorialPhase={tutorialPhase}
+              opponent
+            />
+            <PlayerResources
+              resources={this.selfPlayer.resources}
+              tutorialPhase={tutorialPhase}
+            />
           </View>
           {/* MAIN BOARD */}
           <View style={styles.board}>
+            {/* TUTORIAL DIALOGUE */}
+            {
+              tutorialPhase && tutorialPhase.dialogue 
+              ? (
+                <Dialogue
+                  small
+                  text={tutorialPhase.dialogue.text}
+                  style={{
+                    position: 'absolute',
+                    marginHorizontal: 30,
+                    left: 0,
+                    right: 0,
+                    ...(tutorialPhase.dialogue.align === 'top' ? {
+                      top: 10,
+                    } : {}),
+                    ...(tutorialPhase.dialogue.align === 'bottom' ? {
+                      bottom: 10,
+                    } : {}),
+                    zIndex: 49 // below selfHand, above player cards
+                  }}
+                  onPress={
+                    tutorialPhase.hasOwnProperty('nextStep')
+                    ? () => {
+                        this.setState({ tutorialPhase: tutorialPhases[tutorialPhase.nextStep] })
+                      }
+                    : undefined
+                  }
+                />
+              )
+              : null
+            }
+
             <PlayerCard
               opponent
               player={this.opponentPlayer}
+              avatar={this.gameOpponent.avatar}
               activeDiscoveryCards={this.state.activeDiscoveryCards}
               isAggro={this.state.isAggro.includes(this.opponentPlayer.id)}
               style={{
@@ -426,6 +560,7 @@ class Duel extends Component {
             />
             <PlayerCard
               player={this.selfPlayer}
+              avatar={this.gameSelfPlayer.avatar}
               isAggro={this.state.isAggro.includes(this.selfPlayer.id)}
               style={{
                 transform: [{
@@ -435,6 +570,9 @@ class Duel extends Component {
                   })
                 }]
               }}
+
+              tutorialPhase={tutorialPhase}
+              onTurnEnded={() => this.onTurnEnded()}
             />
 
             {/* BENCHES */}
@@ -505,6 +643,8 @@ class Duel extends Component {
                       onPressOut={() => this.setState({ raiseBenches: false })}
                       isAggro={this.state.isAggro.includes(card.instanceID)}
                       location="bench"
+
+                      tutorialPhase={tutorialPhase}
                     />
                   )
                 }
@@ -539,7 +679,9 @@ class Duel extends Component {
                   <View style={styles.selfHand} >
                     {
                       this.selfPlayer.hand.filter(c => c).map((c, i) => {
-                        const { length } = this.selfPlayer.hand.filter(c => c);
+                        const hand = this.selfPlayer.hand.filter(c => !!c);
+                        const handIDs = hand.map(c => c.id);
+                        const { length } = hand;
 
                         return (
                           <Card
@@ -551,6 +693,8 @@ class Duel extends Component {
                             
                             onPressIn={() => this.setState({ raiseBenches: true })}
                             onPressOut={() => this.setState({ raiseBenches: false })}
+
+                            tutorialPhase={tutorialPhase}
 
                             dropArea={this.state.benchLayout}
                             onPickUp={() => {
@@ -564,6 +708,31 @@ class Duel extends Component {
                                 toValue: 150,
                                 duration: 700
                               }).start();
+
+                              // TUTORIAL EVENT
+                              if (tutorialPhase) {
+                                // intro cast
+                                if (
+                                  tutorialPhase.step === 'INTRO_CAST' && c.id === "Rapid Bot"
+                                ) {
+                                  this.setState({
+                                    tutorialPhase: tutorialPhases['PENDING_CAST']
+                                  });
+                                } else if (
+                                  tutorialPhase.step === 'INTRO_STRENGTH2'
+                                ) {
+                                  this.setState({
+                                    tutorialPhase: tutorialPhases['PENDING_CAST2']
+                                  });
+                                } else if (
+                                  tutorialPhase.step === 'INTRO_DISCOVERY'
+                                ) {
+                                  console.log('set pending wingit')
+                                  this.setState({
+                                    tutorialPhase: tutorialPhases['PENDING_WINGIT']
+                                  });
+                                }
+                              }
                             }}
                             onDrop={(inBench, hasEnough) => {
                               this.setState({ raiseBenches: false })
@@ -579,13 +748,43 @@ class Duel extends Component {
 
                                   // cast
                                   socket.emit("duel.cast", c.instanceID, () => {
+                                    // play cast sound
                                     castSound.loadAsync(
                                       c.kind === "discovery"
                                         ? require('../../assets/audio/ui/discoverycast.mp3')
-                                        : require('../../assets/audio/ui/cardscrape.mp3')
-                                    ).then(() => {
-                                      castSound.playAsync();
-                                    });
+                                        : require('../../assets/audio/ui/cardscrape.mp3'),
+                                      { shouldPlay: true })
+
+                                    // TUTORIAL EVENT
+                                    if (tutorialPhase) {
+                                      let newHandIDs = handIDs.filter(id => id !== c.id);
+
+                                      if (
+                                        tutorialPhase.step === 'PENDING_CAST' && c.id === "Rapid Bot"
+                                      ) {
+                                        this.setState({
+                                          tutorialPhase: tutorialPhases['INTRO_ENDTURN']
+                                        });
+                                      } else if (
+                                        ['PENDING_CAST2', 'INTRO_BOOT'].includes(tutorialPhase.step)
+                                      ) {
+                                        // minion bot cast
+                                        if (c.id === "Minion Bot") {
+                                          this.setState({ tutorialPhase: tutorialPhases['INTRO_BOOT'] });
+                                        }
+
+                                        // both cast
+                                        if (
+                                          !newHandIDs.includes("Minion Bot") && !newHandIDs.includes("Aluminum Bot")
+                                        ) {
+                                          if (tutorialPhase.step !== 'INTRO_BOOT') {
+                                            this.setState({ tutorialPhase: tutorialPhases['INTRO_BOOT_NEXT'] });
+                                          } else {
+                                            this.setState({ tutorialPhase: tutorialPhases['PENDING_INTRO_DISCOVERY'] });
+                                          }
+                                        }
+                                      }
+                                    }
                                   });
                                 } else {
                                   // animate show err
@@ -632,6 +831,7 @@ const styles = StyleSheet.create({
     position: 'relative'
   },
   boardContainer: {
+    position: 'relative',
     flexDirection: 'row',
     alignItems: 'stretch',
     width: '100%',
@@ -707,3 +907,127 @@ const mapStateToProps = state => ({
 });
 
 export default connect(mapStateToProps)(Duel);
+
+const tutorialPhases = {
+  'INTRO': {
+    step: 'INTRO'
+  },
+  'INTRO_EXPLAIN': {
+    step: 'INTRO_EXPLAIN',
+    nextStep: 'INTRO_RESOURCES',
+    dialogue: {
+      text: 'In GearCasters, players create machines to protect them from enemy machines using their resources.'
+    }
+  },
+  'INTRO_RESOURCES': {
+    step: 'INTRO_RESOURCES',
+    nextStep: 'INTRO_CAST',
+    dialogue: {
+      text: "These are your resources. Here you can see how much health and gears you have.",
+      align: "top"
+    }
+  },
+  'INTRO_CAST': {
+    step: 'INTRO_CAST',
+    dialogue: {
+      text: "It looks like you have enough Gears to cast a Rapid Bot. Drag it onto the bench to start."
+    }
+  },
+  'PENDING_CAST': {
+    step: 'PENDING_CAST'
+  },
+  'INTRO_ENDTURN': {
+    step: 'INTRO_ENDTURN',
+    dialogue: {
+      text: "We're ready to battle. End your turn to start!",
+      align: 'top'
+    }
+  },
+  'PENDING_FIRSTCOMBAT': {
+    step: 'PENDING_FIRSTCOMBAT'
+  },
+  'INTRO_ENEMYHEALTH': {
+    step: 'INTRO_ENEMYHEALTH',
+    nextStep: 'ENDTURN-2',
+    dialogue: {
+      text: "You win by getting your enemy's health to 0."
+    }
+  },
+  'ENDTURN-2': { // end the second turn
+    step: 'ENDTURN-2',
+    dialogue: {
+      text: "It looks like you don't have enough resources to cast any cards. End your turn to continue."
+    }
+  },
+  'PENDING_INTRO_STRENGTH': {
+    step: 'PENDING_INTRO_STRENGTH'
+  },
+  'INTRO_STRENGTH': {
+    step: 'INTRO_STRENGTH',
+    nextStep: 'INTRO_STRENGTH2',
+    dialogue: {
+      text: "When in combat, the bot with the HIGHEST STRENGTH WILL WIN."
+    }
+  },
+  'INTRO_STRENGTH2': {
+    step: 'INTRO_STRENGTH2',
+    dialogue: {
+      text: "Aluminum Bots are very strong. Luckily, you have strong bots too. Summon them!"
+    }
+  },
+  'PENDING_CAST2': {
+    step: 'PENDING_CAST2'
+  },
+  // introduce card booting
+  'INTRO_BOOT': {
+    step: 'INTRO_BOOT',
+    dialogue: {
+      text: 'The Minion Bot requires 1 turn to boot before being able to attack.',
+      align: 'top'
+    }
+  },
+  'INTRO_BOOT_NEXT': {
+    step: 'INTRO_BOOT_NEXT',
+    nextStep: 'PENDING_INTRO_DISCOVERY',
+    dialogue: {
+      text: 'The Minion Bot requires 1 turn to boot before being able to attack.',
+      align: 'top'
+    }
+  },
+  // introduce discoveries
+  'PENDING_INTRO_DISCOVERY': {
+    step: 'PENDING_INTRO_DISCOVERY',
+  },
+  'INTRO_DISCOVERY': {
+    step: 'INTRO_DISCOVERY',
+    dialogue: {
+      text: "A Discovery Card! Read it's description to find out what it does! You can only use it once, so make it count!",
+      position: 'top'
+    }
+  },
+  // end tutorial
+  'PENDING_WINGIT': {
+    step: 'PENDING_WINGIT'
+  },
+  'WINGIT': {
+    step: 'WINGIT',
+    nextStep: 'WINGIT2',
+    dialogue: {
+      text: "Well done- You have learn the basics of the game.",
+    }
+  },
+  'WINGIT2': {
+    step: 'WINGIT2',
+    nextStep: 'WINGIT3',
+    dialogue: {
+      text: "GearCaster is a fast-paced game, so it might take a while to master it's mechanics."
+    }
+  },
+  'WINGIT3': {
+    step: 'WINGIT3',
+    nextStep: null,
+    dialogue: {
+      text: "With enough practice, though, you too can master it. Welcome to GearCaster."
+    }
+  }
+}

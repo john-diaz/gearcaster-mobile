@@ -3,6 +3,14 @@
 const imgPath = '../assets/img';
 
 export default {
+  avatars: {
+    'who': require(`${imgPath}/ui/avatars/who.png`),
+    'goblin': require(`${imgPath}/ui/avatars/goblin.png`),
+    'man': require(`${imgPath}/ui/avatars/man.png`),
+    'nord': require(`${imgPath}/ui/avatars/nord.png`),
+    'woman': require(`${imgPath}/ui/avatars/woman.png`),
+    'sage': require(`${imgPath}/ui/avatars/sage.png`),
+  },
   cardCovers: {
     'classic': require(`${imgPath}/ui/card-covers/classic.png`),
     'steampunk': require(`${imgPath}/ui/card-covers/steampunk.png`)
