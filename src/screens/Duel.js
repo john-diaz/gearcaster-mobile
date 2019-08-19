@@ -554,12 +554,19 @@ class Duel extends Component {
 
                             dropArea={this.state.benchLayout}
                             onPickUp={() => {
+                              this.refs.benchRef.measure((x, y, width, height, pageX, pageY) => {
+                                this.setState({
+                                  benchLayout: { pageX, height, width, pageY }
+                                })
+                              });
+
                               Animated.spring(this.state.benchGlow, {
                                 toValue: 150,
                                 duration: 700
                               }).start();
                             }}
                             onDrop={(inBench, hasEnough) => {
+                              this.setState({ raiseBenches: false })
                               Animated.spring(this.state.benchGlow, {
                                 toValue: 0,
                                 duration: 300
