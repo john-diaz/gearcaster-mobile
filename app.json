@@ -5,7 +5,9 @@
     "slug": "gearcaster-mobile",
     "privacy": "unlisted",
     "sdkVersion": "33.0.0",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios"
+    ],
     "version": "1.0.0",
     "orientation": "landscape",
     "icon": "./assets/img/icon.png",
@@ -21,7 +23,21 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "gearcaster",
+      "publishBundlePath": "ios/gearcaster-mobile/Supporting/shell-app.bundle",
+      "publishManifestPath": "ios/gearcaster-mobile/Supporting/shell-app-manifest.json"
+    },
+    "isDetached": true,
+    "detach": {
+      "iosExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/ios-v2.11.2-sdk33.0.0-76da9dd8-735b-43b3-9682-b386811f4e5f.tar.gz",
+      "androidExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/android-v2.11.4-sdk33.0.0-6a4f0f3e-1f1b-4c33-9155-d0237f6d7c34.tar.gz"
+    },
+    "scheme": "expb675c828acbb437095bc6218883f56bb",
+    "android": {
+      "package": "gearcaster.mobile",
+      "publishBundlePath": "android/app/src/main/assets/shell-app.bundle",
+      "publishManifestPath": "android/app/src/main/assets/shell-app-manifest.json"
     }
   }
 }
