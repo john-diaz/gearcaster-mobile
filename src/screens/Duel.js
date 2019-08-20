@@ -590,12 +590,15 @@ class Duel extends Component {
                         location="bench-opponent"
                         onPressIn={() => this.setState({ raiseBenches: true })}
                         onPressOut={() => this.setState({ raiseBenches: false })}
+
+                        style={{ marginRight: 12 }}
                       />
                     )
                     else return (
                       <CardBack
                         key={card.instanceID}
                         faction={card.faction}
+                        style={{ marginRight: 12 }}
                       />
                     )
                   })
@@ -645,6 +648,8 @@ class Duel extends Component {
                       location="bench"
 
                       tutorialPhase={tutorialPhase}
+
+                      style={{ marginRight: 12 }}
                     />
                   )
                 }
@@ -870,7 +875,7 @@ const styles = StyleSheet.create({
   benchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     flex: 1
   },
   emptySpace: {
@@ -879,7 +884,8 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     height: cardStyles.cardContainer.height - 1,
     width: cardStyles.cardContainer.width - 1,
-    borderRadius: 6
+    borderRadius: 6,
+    marginRight: 12
   },
   selfHandContainer: {
     height: cardStyles.cardContainer.height,
@@ -1013,7 +1019,7 @@ const tutorialPhases = {
     step: 'WINGIT',
     nextStep: 'WINGIT2',
     dialogue: {
-      text: "Well done- You have learn the basics of the game.",
+      text: "Well done- You've learned the basics of the game.",
     }
   },
   'WINGIT2': {

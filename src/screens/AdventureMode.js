@@ -172,14 +172,13 @@ class AdventureMode extends Component {
               }
               <CardPack
                 faction={adventureSession.deckName}
-                style={{
+                containerStyle={{
                   width: 117,
                   height: 160
                 }}
                 imageStyle={{
                   width: 117,
                   height: 160,
-                  borderRaiuds: 12
                 }}
               />
             </View>
