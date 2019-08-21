@@ -255,6 +255,7 @@ class OpenPacks extends Component {
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'stretch'
   },

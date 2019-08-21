@@ -53,7 +53,7 @@ class Landing extends Component {
         style={{
           flex: 1,
           flexDirection: 'column',
-          alignItems: 'stretch',
+          alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
           backgroundColor: 'black'
@@ -71,6 +71,7 @@ class Landing extends Component {
           style={{
             zIndex: 10,
             flex: 1,
+            width: '100%',
             maxWidth: 750,
             margin: 20,
             position: 'relative'

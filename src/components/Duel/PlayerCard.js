@@ -78,6 +78,7 @@ export default class PlayerCard extends Component {
           width: 270,
           backgroundColor: 'rgba(255,255,255,0.73)',
           padding: 10,
+          paddingBottom: this.props.opponent ? 10 : 20,
           flexDirection: 'row',
           alignItems: 'center',
           zIndex: 48,

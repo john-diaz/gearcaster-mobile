@@ -569,7 +569,7 @@ export class CardPack extends Component {
 export const styles = StyleSheet.create({
   cardContainer: {
     height: 100,
-    width: 74,
+    width: 80,
     position: 'relative',
     shadowRadius: 6,
     shadowColor: 'rgba(0,0,0,0.5)',
@@ -579,7 +579,7 @@ export const styles = StyleSheet.create({
   },
   cardImage: {
     height: 100,
-    width: 74,
+    width: 80,
     borderWidth: 4,
     borderColor: 'black',
     borderRadius: 6,

@@ -84,9 +84,9 @@ class AdventureMode extends Component {
             source={require('../../assets/img/ui/backgrounds/adventure.png')}
             style={{
               width: '100%',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              alignItems: 'stretch',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'flex-start',
               paddingBottom: 8
             }}
             resizeMode="cover"
@@ -94,6 +94,7 @@ class AdventureMode extends Component {
             <View
               style={{
                 flexDirection: 'row',
+                flex: 1,
                 maxWidth: 710,
                 marginHorizontal: 6,
                 alignItems: 'stretch',

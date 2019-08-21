@@ -61,8 +61,9 @@ export default class AppButton extends Component {
             alignContent: 'center'
           } : {}),
           shadowColor: 'black',
-          shadowOpacity: 0.8,
-          shadowRadius: 6,
+          shadowOpacity: 0.6,
+          shadowRadius: 4,
+          shadowOffset: { x: 1, y: 1 },
           ...this.props.containerStyle
         }}
       >

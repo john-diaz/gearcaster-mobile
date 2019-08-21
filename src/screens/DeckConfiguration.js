@@ -324,9 +324,9 @@ class DeckConfiguration extends Component {
               source={require('../../assets/img/ui/backgrounds/tatami-header.png')}
               style={{
                 width: '100%',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                alignItems: 'stretch',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
                 paddingBottom: 8
               }}
               resizeMode="cover"
@@ -334,6 +334,7 @@ class DeckConfiguration extends Component {
               <View
                 style={{
                   flexDirection: 'row',
+                  flex: 1,
                   maxWidth: 710,
                   marginHorizontal: 6,
                   alignItems: 'flex-start',
@@ -736,6 +737,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     marginRight: 6,
     paddingTop: 58,
+    alignItems: 'center'
   },
   headerContainer: {
     position: 'absolute',
