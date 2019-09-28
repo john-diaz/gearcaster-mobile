@@ -226,6 +226,8 @@ PODS:
     - "GoogleToolboxForMac/NSString+URLArguments (= 2.2.1)"
   - "GoogleToolboxForMac/NSString+URLArguments (2.2.1)"
   - GTMSessionFetcher/Core (1.2.2)
+  - instabug-reactnative (8.7.0):
+    - React
   - JKBigInteger2 (0.0.5)
   - lottie-ios (2.5.3)
   - React (0.59.8):
@@ -350,6 +352,7 @@ DEPENDENCIES:
   - EXWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - instabug-reactnative (from `../node_modules/instabug-reactnative`)
   - React/ART (from `../node_modules/react-native`)
   - React/Core (from `../node_modules/react-native`)
   - React/CxxBridge (from `../node_modules/react-native`)
@@ -542,6 +545,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/Folly.podspec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  instabug-reactnative:
+    :path: "../node_modules/instabug-reactnative"
   React:
     :path: "../node_modules/react-native"
   UMBarCodeScannerInterface:
@@ -655,6 +660,7 @@ SPEC CHECKSUMS:
   GoogleSignIn: 7ff245e1a7b26d379099d3243a562f5747e23d39
   GoogleToolboxForMac: b3553629623a3b1bff17f555e736cd5a6d95ad55
   GTMSessionFetcher: 61bb0f61a4cb560030f1222021178008a5727a23
+  instabug-reactnative: 25559f1eb67f02cda0303ef33fa23b06e9722471
   JKBigInteger2: e91672035c42328c48b7dd015b66812ddf40ca9b
   lottie-ios: a50d5c0160425cd4b01b852bb9578963e6d92d31
   React: 76e6aa2b87d05eb6cccb6926d72685c9a07df152
@@ -672,6 +678,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 2d2d591bbd0de47f2a8ef46cea775edcd82d4afd
   yoga: 92b2102c3d373d1a790db4ab761d2b0ffc634f64
 
-PODFILE CHECKSUM: da29bfeb4c114da3ba846330182f481803462c3f
+PODFILE CHECKSUM: f643f194508eb6784b6f53d22d04182634d9e8e1
 
 COCOAPODS: 1.7.5

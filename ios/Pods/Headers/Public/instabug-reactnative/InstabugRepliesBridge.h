@@ -1,0 +1,1 @@
+../../../../../node_modules/instabug-reactnative/ios/RNInstabug/InstabugRepliesBridge.h

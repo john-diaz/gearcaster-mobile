@@ -79,6 +79,9 @@ allprojects {
       	maven {
       	    url "https://sdks.instabug.com/nexus/repository/instabug-cp"
        	}  
+      	maven {
+      	    url "https://sdks.instabug.com/nexus/repository/instabug-cp"
+       	}  
       }
 }
 
