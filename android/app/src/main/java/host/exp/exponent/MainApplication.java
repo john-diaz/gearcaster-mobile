@@ -28,7 +28,13 @@ public class MainApplication extends ExpoApplication implements AppLoaderPackage
         // TODO: add native modules!
 
         // Needed for `react-native link`
-        // new MainReactPackage()
+        // new MainReactPackage(),
+            		new RNInstabugReactnativePackage.Builder("b8620cc3af18f7e7cd7fd4eebf14e361",MainApplication.this)
+							.setInvocationEvent("shake")
+							.setPrimaryColor("#1D82DC")
+							.setFloatingEdge("left")
+							.setFloatingButtonOffsetFromTop(250)
+							.build()
     );
   }
 

@@ -40,7 +40,8 @@ export default class PlayerResources extends Component {
         if (resourceName === 'health') {
           Animated.timing(this.healthAnim, {
             toValue: current / 20,
-            duration: 200
+            duration: 200,
+            // useNativeDriver: true
           }).start();
           if (delta > 0) {
             const healAudio = new Audio.Sound();

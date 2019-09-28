@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Animated, Easing } from 'react-native';
 
-export default class Spinner extends Component {
+export default class Spinner extends PureComponent {
   spinValue = new Animated.Value(0);
 
   state = {

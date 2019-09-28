@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, StatusBar, AsyncStorage } from 'react-native';
+// instabug import
+// import Instabug from 'instabug-reactnative';
 // app imports
 import * as Font from 'expo-font';
 import { createStackNavigator, createAppContainer, withNavigation } from 'react-navigation';
@@ -19,6 +21,7 @@ import globalStyles from './src/styles';
 import navigationService from './src/navigationService';
 import AdventureMode from './src/screens/AdventureMode';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { Platform } from '@unimodules/core';
 
 const AppNavigator = createStackNavigator(
   {
@@ -66,12 +69,20 @@ export default class App extends React.Component {
     connection: false, // socket.io connection
     authStatus: null
   }
+  constructor(props) {
+    super(props);
+    if (Platform.OS === 'ios') {
+      // initiate Instabug
+      // Instabug.startWithToken('b8620cc3af18f7e7cd7fd4eebf14e361', [Instabug.invocationEvent.shake]);
+    }
+  }
   componentDidMount() {
     console.info('App mounted, connecting socket');
 
     store.subscribe(() => {
       const storeState = store.getState();
       this.setState({
+        user: storeState.user,
         connection: storeState.connection,
         authStatus: storeState.authStatus,
         customAlert: storeState.customAlert
@@ -87,6 +98,14 @@ export default class App extends React.Component {
     }).then(() => store.dispatch({ type: 'FONT_LOADED' }));
 
     store.dispatch({ type: 'SET_AMBIENT', payload: 'DEFAULT' });
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.authStatus !== 1 && this.state.authStatus === 1) {
+      if (this.state.user.duelID) {
+        // navigate to the duel screen without specifying a deck or gameID (indicator of resuming game)
+        navigationService.navigate('Duel', { gameID: null, selectedDeck: null });
+      }
+    }
   }
   render() {
     return (

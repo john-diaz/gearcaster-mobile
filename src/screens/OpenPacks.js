@@ -5,7 +5,8 @@ import {
   Animated,
   ImageBackground,
   ScrollView,
-  Alert
+  Alert,
+  TouchableOpacity
 } from 'react-native';
 import { connect } from 'react-redux';
 import Card, { CardPack, styles as cardStyles, CardBack } from '../components/Duel/Card';
@@ -13,7 +14,6 @@ import globalStyles from '../styles';
 import { Text, Button } from '../components/custom';
 import socket from '../socket';
 import { uuidv4 } from '../helpers';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Audio } from 'expo-av';
 
 class OpenPacks extends Component {
@@ -122,7 +122,8 @@ class OpenPacks extends Component {
                         });
                         Animated.timing(this.state.fadeAnim, {
                           toValue: 0.4,
-                          duration: 100
+                          duration: 100,
+                          useNativeDriver: true
                         }).start();
                       }}
                       onDrop={inArea => {
@@ -131,7 +132,8 @@ class OpenPacks extends Component {
                         });
                         Animated.timing(this.state.fadeAnim, {
                           toValue: 0.5,
-                          duration: 100
+                          duration: 100,
+                          useNativeDriver: true
                         }).start();
 
                         if (inArea) {

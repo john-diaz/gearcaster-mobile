@@ -45,13 +45,15 @@ export default class PlayerCard extends Component {
     if (prevProps.isAggro !== this.props.isAggro && this.props.isAggro) {
       Animated.timing(this.state.aggroAnim, {
         toValue: 1,
-        duration: 100 // time to go aggro
+        duration: 100, // time to go aggro
+        // useNativeDriver: true
       }).start(() => {
         if (!this._isMounted) return;
         Animated.timing(this.state.aggroAnim, {
           toValue: 0,
           duration: 100, // time to fade out
-          delay: 1200 // time to show aggro
+          delay: 1200, // time to show aggro
+          // useNativeDriver: true
         }).start();
       });
     }
@@ -72,23 +74,25 @@ export default class PlayerCard extends Component {
     if (this.props.onTurnEnded) this.props.onTurnEnded();
   }
   render() {
+    const { tutorialPhase, opponent } = this.props;
+
     return(
       <Animated.View
         style={{
           width: 270,
           backgroundColor: 'rgba(255,255,255,0.73)',
           padding: 10,
-          paddingBottom: this.props.opponent ? 10 : 20,
+          paddingBottom: opponent ? 10 : 20,
           flexDirection: 'row',
           alignItems: 'center',
           zIndex: 48,
           position: 'absolute',
           left: 10,
-          ...(this.props.opponent 
+          ...(opponent 
             ? { top: 0 }
             : { bottom: 0 }
           ),
-          ...(this.props.opponent
+          ...(opponent
             ? {
               borderBottomLeftRadius: 10,
               borderBottomRightRadius: 10
@@ -148,7 +152,7 @@ export default class PlayerCard extends Component {
           <View style={{ marginTop: 5 }} />
 
           {
-            this.props.opponent
+            opponent
               ? this.props.player.standingBy // opponent player
                 ? <Text bold style={{ color: '#444', fontSize: 16, marginTop: 5 }}>
                   [ Turn Ended ]
@@ -173,7 +177,7 @@ export default class PlayerCard extends Component {
                         fontSize: 14
                       }}
 
-                      tutorialPhase={this.props.tutorialPhase}
+                      tutorialPhaseStep={tutorialPhase ? tutorialPhase.step : null}
                     />
                   )
                   : <Text bold style={{ color: '#444', fontSize: 16, marginTop: 5  }}>
@@ -184,7 +188,7 @@ export default class PlayerCard extends Component {
         
         {/* ACTIVE DISCOVERY CARDS */}
         {
-          this.props.opponent
+          opponent
             ? this.props.activeDiscoveryCards.map((card, i) => 
               <Card
                 isActiveDiscovery

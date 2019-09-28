@@ -4,7 +4,6 @@ import {
   ImageBackground,
   Alert,
   StyleSheet,
-  TouchableWithoutFeedback,
   Animated
 } from 'react-native';
 import { Audio } from 'expo-av';
@@ -70,11 +69,12 @@ class Duel extends Component {
     socket.on('gameData', (game) => {
       if (!this._ismounted) return;
 
-      if (!this.state.game && game.challenge.botConfig.difficulty === 0) {
-        this.initTutorial();
-      }
-
-      this.setState({ game });
+      const prevState = {...this.state};
+      this.setState({ game }, () => {
+        if (!prevState.game && game.challenge.botConfig.difficulty === 0) {
+          this.initTutorial();
+        }
+      });
     });
 
     socket.on('duelCombatInstructions', this.duelCombatInstructionsHandler);
@@ -169,20 +169,34 @@ class Duel extends Component {
   joinGame() {
     const gameID = this.props.navigation.getParam('gameID');
     const selectedDeck = this.props.navigation.getParam('selectedDeck');
-
-    this.setState({ attemptingJoin: true });
     
+    this.setState({ attemptingJoin: true });
     console.log('joining game');
 
-    socket.emit('duel.join', gameID, selectedDeck, (err) => {
-      if (!this._ismounted) return;
-
-      this.setState({ attemptingJoin: false });
-      if (err) {
-        Alert.alert(err);
-        this.props.navigation.goBack();
-      }
-    });
+    // this is a new duel, specify your selectedDeck
+    if (gameID && selectedDeck) {
+      socket.emit('duel.join', gameID, selectedDeck, (err) => {
+        if (!this._ismounted) return;
+  
+        this.setState({ attemptingJoin: false });
+        if (err) {
+          Alert.alert(err);
+          this.props.navigation.goBack();
+        }
+      });
+    }
+    // this is an existing duel, resume it
+    else {
+      socket.emit('duel.resume', (err) => {
+        if (!this._ismounted) return;
+  
+        this.setState({ attemptingJoin: false });
+        if (err) {
+          Alert.alert(err);
+          this.props.navigation.goBack();
+        }
+      });
+    }
   }
   duelCombatInstructionsHandler = (data) => {
     const { initialDuelState, combatInstructions } = data;
@@ -195,7 +209,8 @@ class Duel extends Component {
 
     Animated.timing(this.state.playercardAnim, {
       toValue: 0,
-      duration: 600
+      duration: 600,
+      // useNativeDriver: true, not supported
     }).start();
 
 
@@ -230,7 +245,8 @@ class Duel extends Component {
     setTimeout(() => {
       Animated.timing(this.state.playercardAnim, {
         toValue: 1,
-        duration: 100
+        duration: 100,
+        // useNativeDriver: true, not supported
       }).start();
       this.setState({ virtualDuel: null, isAggro: [] }, this.onFinishCombatIntructions);
     }, (combatInstructions.length + 1) * stepDuration);
@@ -294,7 +310,6 @@ class Duel extends Component {
       this.setState({ tutorialPhase: tutorialPhases['INTRO_STRENGTH'] });
     }
     if (tutorialPhase && tutorialPhase.step === 'PENDING_INTRO_DISCOVERY') {
-      console.log('set intro discovery')
       this.setState({ tutorialPhase: tutorialPhases['INTRO_DISCOVERY'] });
     }
     if (tutorialPhase && tutorialPhase.step === 'PENDING_WINGIT') {
@@ -329,6 +344,8 @@ class Duel extends Component {
   get selfPlayer() {
       const userID = this.props.user.id;
       const duel = this.computedDuel;
+
+      if (!duel) throw new Error("ASSSSHOLE");
 
       // when we are animating, the virtual duel will include both player's "private data"
       // this is to avoid overwriting the virtual duel private data with the private data the server sent us,
@@ -385,13 +402,15 @@ class Duel extends Component {
     Animated.spring(this.state.userErrorAnimation, {
       toValue: 1,
       duration: 1200,
-      friction: 1.2
+      friction: 1.2,
+      useNativeDriver: true
     }).start();
 
     this._userErrorInterval = setTimeout(() => {
       Animated.timing(this.state.userErrorAnimation, {
         toValue: 0,
         duration: 600,
+        useNativeDriver: true
       }).start(() => {
         if (!this._ismounted) return;
         if (this.state.userError === messageString) {
@@ -402,20 +421,25 @@ class Duel extends Component {
   }
 
   initTutorial() {
-    this.props.dispatch({
-      type: 'SET_ALERT',
-      payload: {
-        component: (
-          <Dialogue
-            text="Welcome to the Dojo. I will be guiding you through your first duel."
-            onPress={() => {
-              this.props.dispatch({ type: 'SET_ALERT', payload: null });
-              this.setState({ tutorialPhase: tutorialPhases['INTRO_EXPLAIN'] });
-            }}
-          />
-        )
-      }
-    });
+    if (
+      !Object.values(this.opponentPlayer.bench).find(c => c) &&
+      !Object.values(this.selfPlayer.bench).find(c => c)
+    ) {
+      this.props.dispatch({
+        type: 'SET_ALERT',
+        payload: {
+          component: (
+            <Dialogue
+              text="Welcome to the Dojo. I will be guiding you through your first duel."
+              onPress={() => {
+                this.props.dispatch({ type: 'SET_ALERT', payload: null });
+                this.setState({ tutorialPhase: tutorialPhases['INTRO_EXPLAIN'] });
+              }}
+            />
+          )
+        }
+      });
+    }
   }
 
   render() {
@@ -529,7 +553,7 @@ class Duel extends Component {
                     ...(tutorialPhase.dialogue.align === 'bottom' ? {
                       bottom: 10,
                     } : {}),
-                    zIndex: 49 // below selfHand, above player cards
+                    zIndex: 60 // above everything else
                   }}
                   onPress={
                     tutorialPhase.hasOwnProperty('nextStep')
@@ -591,14 +615,30 @@ class Duel extends Component {
                         onPressIn={() => this.setState({ raiseBenches: true })}
                         onPressOut={() => this.setState({ raiseBenches: false })}
 
-                        style={{ marginRight: 12 }}
+                        style={{
+                          height: styles.emptySpace.height,
+                          width: styles.emptySpace.width,
+                          marginRight: 12
+                        }}
+                        imageStyle={{
+                          height: styles.emptySpace.height,
+                          width: styles.emptySpace.width
+                        }}
                       />
                     )
                     else return (
                       <CardBack
                         key={card.instanceID}
                         faction={card.faction}
-                        style={{ marginRight: 12 }}
+                        style={{
+                          height: styles.emptySpace.height,
+                          width: styles.emptySpace.width,
+                          marginRight: 12
+                        }}
+                        imageStyle={{
+                          height: styles.emptySpace.height,
+                          width: styles.emptySpace.width
+                        }}
                       />
                     )
                   })
@@ -608,11 +648,11 @@ class Duel extends Component {
                     return <View style={styles.emptySpace} key={Math.random() * 1000}/>;
                   })
                 }
-                {
+                {/* {
                   this.opponentPlayer.configuration.benchSize === 3
                     ? <View style={{...styles.emptySpace, borderWidth: 0 }}/>
                     : null
-                }
+                } */}
               </View>
               {/* BENCH DIVIDER */}
               <Animated.View
@@ -647,9 +687,17 @@ class Duel extends Component {
                       isAggro={this.state.isAggro.includes(card.instanceID)}
                       location="bench"
 
-                      tutorialPhase={tutorialPhase}
+                      tutorialPhaseStep={tutorialPhase ? tutorialPhase.step : null}
 
-                      style={{ marginRight: 12 }}
+                      style={{
+                        height: styles.emptySpace.height,
+                        width: styles.emptySpace.width,
+                        marginRight: 12
+                      }}
+                      imageStyle={{
+                        height: styles.emptySpace.height,
+                        width: styles.emptySpace.width
+                      }}
                     />
                   )
                 }
@@ -667,11 +715,11 @@ class Duel extends Component {
                     />
                   )
                 }
-                {
+                {/* {
                   this.selfPlayer.configuration.benchSize === 3
                     ? <View style={{...styles.emptySpace, borderWidth: 0 }}/>
                     : null
-                }
+                } */}
               </View>
             </View>
 
@@ -699,7 +747,16 @@ class Duel extends Component {
                             onPressIn={() => this.setState({ raiseBenches: true })}
                             onPressOut={() => this.setState({ raiseBenches: false })}
 
-                            tutorialPhase={tutorialPhase}
+                            tutorialPhaseStep={tutorialPhase ? tutorialPhase.step : null}
+
+                            style={{
+                              height: styles.emptySpace.height,
+                              width: styles.emptySpace.width
+                            }}
+                            imageStyle={{
+                              height: styles.emptySpace.height,
+                              width: styles.emptySpace.width
+                            }}
 
                             dropArea={this.state.benchLayout}
                             onPickUp={() => {
@@ -711,7 +768,8 @@ class Duel extends Component {
 
                               Animated.spring(this.state.benchGlow, {
                                 toValue: 150,
-                                duration: 700
+                                duration: 700,
+                                // useNativeDriver: true, not supported
                               }).start();
 
                               // TUTORIAL EVENT
@@ -732,7 +790,6 @@ class Duel extends Component {
                                 } else if (
                                   tutorialPhase.step === 'INTRO_DISCOVERY'
                                 ) {
-                                  console.log('set pending wingit')
                                   this.setState({
                                     tutorialPhase: tutorialPhases['PENDING_WINGIT']
                                   });
@@ -743,7 +800,8 @@ class Duel extends Component {
                               this.setState({ raiseBenches: false })
                               Animated.spring(this.state.benchGlow, {
                                 toValue: 0,
-                                duration: 300
+                                duration: 300,
+                                // useNativeDriver: true, not supported
                               }).start();
 
                               if (inBench) {
@@ -817,7 +875,7 @@ class Duel extends Component {
                   </View>
                 </Animated.View>
             }
-            <Sidebar />
+            <Sidebar game={this.state.game}/>
           </View>
         </View>
       </ImageBackground>
@@ -866,7 +924,7 @@ const styles = StyleSheet.create({
   },
   benchesContainer: {
     flexDirection: 'column',
-    alignItems: 'stretch',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginRight: 35,
     minHeight: 220,
@@ -882,8 +940,8 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     borderColor: 'rgba(0, 0, 0, 0.1)',
     borderWidth: 3,
-    height: cardStyles.cardContainer.height - 1,
-    width: cardStyles.cardContainer.width - 1,
+    height: 90,
+    width: 68,
     borderRadius: 6,
     marginRight: 12
   },
@@ -922,7 +980,7 @@ const tutorialPhases = {
     step: 'INTRO_EXPLAIN',
     nextStep: 'INTRO_RESOURCES',
     dialogue: {
-      text: 'In GearCasters, players create machines to protect them from enemy machines using their resources.'
+      text: 'In GearCaster, engineers create machines to protect them from enemy machines using their resources.'
     }
   },
   'INTRO_RESOURCES': {

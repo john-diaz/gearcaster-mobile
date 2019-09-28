@@ -1,16 +1,16 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { TouchableOpacity, ImageBackground, View } from 'react-native';
 import { Audio } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import globalStyles from '../../styles';
 import Text from './Text';
 
-export default class AppButton extends Component {
+export default class AppButton extends PureComponent {
   state = {
     activePress: false
   }
   get gradientColors() {
-    if (!this.shouldRespond) {
+    if (this.props.disabled) {
       return ['#828282', '#828282']
     } else if (this.props.urgent) {
       return !this.state.activePress ? ['#db775e', '#a84e48'] : ['#a84e48', '#db775e']
@@ -23,13 +23,13 @@ export default class AppButton extends Component {
 
   // lets the button know if it should respond when interacted with
   // it takes into account this.props.disabled
-  // and this.props.tutorialPhase, if there is one
+  // and this.props.tutorialPhaseStep, if there is one
   get shouldRespond() {
-    const { disabled, tutorialPhase } = this.props;
+    const { disabled, tutorialPhaseStep } = this.props;
 
     if (disabled) return false;
 
-    if (!tutorialPhase) {
+    if (!tutorialPhaseStep) {
       return true;
     } else if (
       [
@@ -37,7 +37,7 @@ export default class AppButton extends Component {
         'ENDTURN-2',
         'PENDING_INTRO_DISCOVERY',
         'PENDING_WINGIT'
-      ].includes(tutorialPhase.step)
+      ].includes(tutorialPhaseStep)
     ) {
       return true;
     }

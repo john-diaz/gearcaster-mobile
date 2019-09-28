@@ -5,11 +5,12 @@ import {
   StyleSheet,
   ImageBackground,
   Image,
-  Alert
+  Alert,
+  ScrollView,
+  TouchableHighlight
 } from 'react-native';
-import { ScrollView, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { Button, ArrowButton, Text } from '../components/custom';
+import { Button, ArrowButton, Text, CustomAlert } from '../components/custom';
 import socket from '../socket';
 import Card, { CardBack, styles as cardStyles } from '../components/Duel/Card';
 import globalStyles from '../styles';
@@ -18,12 +19,15 @@ import { Audio } from 'expo-av';
 import images from '../images';
 import { LinearGradient } from 'expo-linear-gradient';
 import Shop from '../components/DeckConfiguration/Shop';
+import Dialogue from '../components/Duel/Dialogue';
+import navigationService from '../navigationService';
 
 let rolloverAudio = new Audio.Sound();
 rolloverAudio.loadAsync(require('../../assets/audio/ui/rollover.mp3'));
 
 class DeckConfiguration extends Component {
   state = {
+    tutorialPhase: null,
     selectedDeck: null,
     collection: {
       spareCards: [],
@@ -62,12 +66,35 @@ class DeckConfiguration extends Component {
     const { user } = this.props;
 
     if (!user) return console.log('failed to load collection, unauthenticated');
+    console.log('loading deck', Date.now());
 
     socket.emit('user.collection', user.username, (err, collection) => {
       if (!err && collection) {
         this.setState({ collection });
+
+        if (user.needsToLearn.includes("deck-config") && !this.state.tutorialPhase) {
+          this.initTutorial();
+        }
       } else {
         console.warn(err);
+      }
+    });
+  }
+
+  initTutorial() {
+    this.props.dispatch({
+      type: 'SET_ALERT',
+      payload: {
+        component: (
+          <Dialogue
+            text="Welcome to your workshop! Here you will craft the ultimate deck."
+            onPress={() => {
+              this.props.dispatch({ type: 'SET_ALERT', payload: null });
+              socket.emit("user.setLearnt", "deck-config");
+              this.setState({ tutorialPhase: tutorialPhases['INTRO_EXPLAIN'] });
+            }}
+          />
+        )
       }
     });
   }
@@ -172,8 +199,23 @@ class DeckConfiguration extends Component {
    * Called by the side bar when the user selects a deck
    */
   setDeck = (selectedDeck) => {
-    rolloverAudio.playFromPositionAsync(0);
-    this.setState({ selectedDeck });
+    if (
+      selectedDeck &&
+      selectedDeck !== "classic"
+    ) {
+      Alert.alert(`${capitalize(selectedDeck)} Deck coming soon!`);
+    } else {
+      const { tutorialPhase } = this.state;
+
+      rolloverAudio.playFromPositionAsync(0);
+      this.setState({ selectedDeck });
+
+      if (tutorialPhase && tutorialPhase.step === 'INTRO_DECK_CHOOSE' && selectedDeck === 'classic') {
+        this.setState({
+          tutorialPhase: tutorialPhases.PENDING_INTRO_DRAG
+        });
+      }
+    }
   }
 
   /**
@@ -217,6 +259,11 @@ class DeckConfiguration extends Component {
       this.state.collection.spareCards = Object.values(spareCardsObj);
 
       this.setState(this.state);
+
+      const { tutorialPhase } = this.state;
+      if (tutorialPhase && tutorialPhase.step === 'INTRO_DRAG') {
+        this.setState({ tutorialPhase: tutorialPhases.INTRO_REMOVE });
+      }
     })
   }
 
@@ -274,7 +321,8 @@ class DeckConfiguration extends Component {
     Animated.timing(this.state.shopAnimation, {
       toValue: this.state.showingShop ? 0 : 1,
       fromValue: !this.state.showingShop ? 0 : 1,
-      duration: 1000
+      duration: 1000,
+      useNativeDriver: true
     }).start();
 
     
@@ -288,7 +336,8 @@ class DeckConfiguration extends Component {
   }
   
   render() {
-    const { offsetIndex, selectedDeck, collection } = this.state;
+    const { allCards } = this;
+    const { offsetIndex, selectedDeck, collection, tutorialPhase } = this.state;
     const sampleCards = this.sampleCards(offsetIndex);
 
     const { user } = this.props;
@@ -297,6 +346,38 @@ class DeckConfiguration extends Component {
 
     return (
       <View style={{ flex: 1, backgroundColor: '#776969' }}>
+        {/* TUTORIAL DIALOGUE */}
+        {
+          tutorialPhase && tutorialPhase.dialogue 
+          ? (
+            <Dialogue
+              small
+              text={tutorialPhase.dialogue.text}
+              style={{
+                position: 'absolute',
+                marginHorizontal: 30,
+                left: 0,
+                right: 0,
+                ...(tutorialPhase.dialogue.align === 'top' ? {
+                  top: 10,
+                } : {}),
+                ...(tutorialPhase.dialogue.align === 'bottom' ? {
+                  bottom: 10,
+                } : {}),
+                zIndex: 60 // above everything else
+              }}
+              onPress={
+                tutorialPhase.hasOwnProperty('nextStep')
+                ? () => {
+                    this.setState({ tutorialPhase: tutorialPhases[tutorialPhase.nextStep] })
+                  }
+                : undefined
+              }
+            />
+          )
+          : null
+        }
+
         <Animated.View
           style={{
             ...globalStyles.absoluteCenter,
@@ -348,6 +429,7 @@ class DeckConfiguration extends Component {
                   containerStyle={{
                     flex: 1
                   }}
+                  tutorialPhaseStep={tutorialPhase ? tutorialPhase.step : null}
                   onPress={() => this.props.navigation.navigate('Landing')}
                 />
                 <Button
@@ -357,8 +439,11 @@ class DeckConfiguration extends Component {
                     flex: 2,
                     marginHorizontal: 15
                   }}
-
-                  onPress={() => this.toggleShop()}
+                  tutorialPhaseStep={tutorialPhase ? tutorialPhase.step : null}
+                  onPress={() => {
+                    Alert.alert("Shop is under construction!");
+                    // this.toggleShop()
+                  }}
                 />
                 <Button
                   title="Open Packs"
@@ -369,6 +454,7 @@ class DeckConfiguration extends Component {
                     position: 'relative',
                     overflow: 'visible'
                   }}
+                  tutorialPhaseStep={tutorialPhase ? tutorialPhase.step : null}
                   onPress={() => this.props.navigation.navigate('OpenPacks')}
                 >
                   {
@@ -401,7 +487,7 @@ class DeckConfiguration extends Component {
                     flex: 2
                   }}
                   disabled={!user.adventureSession && (!selectedDeck || !user.configuredDecks[selectedDeck].valid)}
-                  charged={(!user.adventureSession && selectedDeck) || (user.adventureSession && user.adventureSession.gameID)}
+                  charged={(!user.adventureSession && selectedDeck) || (user.adventureSession)}
 
                   onPress={() => {
                     if (user.adventureSession) {
@@ -421,17 +507,9 @@ class DeckConfiguration extends Component {
                         this.props.navigation.navigate('AdventureMode');
                       }
                     } else if (selectedDeck && user.configuredDecks[selectedDeck].valid) {
-                      socket.emit('adventure.new', selectedDeck, (err) => {
-                        if (err) Alert.alert(err);
-                        else {
-                          const revealSound = new Audio.Sound();
-                          revealSound.loadAsync(
-                            require('../../assets/audio/ui/revealDeck.mp3'),
-                            { shouldPlay: true }
-                          );
-
-                          this.props.navigation.navigate('AdventureMode');
-                        }
+                      this.props.dispatch({
+                        type: 'SET_ALERT',
+                        payload: { component: <GamemodeModal /> }
                       });
                     }
                   }}
@@ -444,6 +522,23 @@ class DeckConfiguration extends Component {
           <View style={styles.boardContainer}>
             {/* MAIN CONTAINER BOARD */}
             <View style={styles.mainBoardContainer}>
+              {/* PAGE INDICATOR */}
+              {
+                allCards
+                ? (
+                  <View
+                    style={{
+                      ...globalStyles.cobbleBox,
+                      position: 'absolute',
+                      top: -18,
+                      left: 14
+                    }}
+                  >
+                    <Text bold>Page {offsetIndex + 1}/{Math.ceil(allCards.length / 8)}</Text>
+                  </View>
+                )
+                : null
+              }
               {/* LEFT PAGE BUTTON */}
               {this.state.offsetIndex > 0
                 ? <View style={{...styles.nextPageButtonContainer, left: -22}}>
@@ -491,6 +586,8 @@ class DeckConfiguration extends Component {
                             imageStyle={{
                               opacity: c.quantity === 0 ? 0.6 : 1
                             }}
+
+                            tutorialPhaseStep={tutorialPhase ? tutorialPhase.step : null}
                             onPressIn={() => this.setState({ hoveringCard: c.instanceID })}
                             onPressOut={() => this.setState({ hoveringCard: null })}
 
@@ -499,13 +596,15 @@ class DeckConfiguration extends Component {
                             onPickUp={() => {
                               Animated.timing(this.state.glowDropArea, {
                                 toValue: 1,
-                                duration: 700
+                                duration: 700,
+                                // useNativeDriver: true, not supported
                               }).start();
                             }}
                             onDrop={(inArea) => {
                               Animated.timing(this.state.glowDropArea, {
                                 toValue: 0,
-                                duration: 700
+                                duration: 700,
+                                // useNativeDriver: true, not supported
                               }).start();
                               if (inArea && selectedDeck && c.quantity > 0) {
                                 this.addToDeck(c.id);
@@ -575,23 +674,33 @@ class DeckConfiguration extends Component {
                     )
                     : null
                   }
-                  <ScrollView style={{ flex: 1 }}>
+                  <View style={{ flex: 1, overflow: 'visible' }}>
                     {
                       ["classic", "steampunk"].map((deckName, i) => {
                         const deck = this.props.user.configuredDecks[deckName];
 
                         return (
                           <TouchableHighlight
-                            onPress={() => { if (deck) this.setDeck(deckName) }}
+                            onPress={() => this.setDeck(deckName)}
                             activeOpacity={deck ? 1 : 0.85}
                             key={deckName}
                           >
                             <ImageBackground
-                              key={deckName}
                               style={{
                                 ...styles.deckContainer,
                                 opacity: deck ? 1 : 0.8,
-                                backgroundColor: deck ? '#BDBDBD' : '#4F4F4F'
+                                backgroundColor: '#249bf8',
+                                ...(
+                                  tutorialPhase && tutorialPhase.step === 'INTRO_DECK_CHOOSE' && deckName === 'classic'
+                                  ? {
+                                      shadowColor: 'gold',
+                                      shadowRadius: 8,
+                                      shadowOpacity: 0.8,
+                                      scale: 1.09,
+                                      marginTop: 10
+                                    }
+                                  : {}
+                                )
                               }}
                               source={require('../../assets/img/ui/backgrounds/bg.png')}
                               resizeMode='repeat'
@@ -615,7 +724,7 @@ class DeckConfiguration extends Component {
                                   deck
                                     ? <Text style={{ fontSize: 14, color: deck.valid ? 'white' : 'red' }}>{this.totalDeckSize(deckName)}/{this.deckSizeLimit(deckName)}</Text>
                                     : <Text bold style={{ fontSize: 12 }}>
-                                      Coming soon...{/* reach phase {i} in Adventure Mode to unlock */}
+                                      0/50 {/* reach phase {i} in Adventure Mode to unlock */}
                                       </Text>
                                 }
                               </View>
@@ -624,7 +733,7 @@ class DeckConfiguration extends Component {
                         )
                       })
                     }
-                  </ScrollView>
+                  </View>
                 </View>
               </View>
             )
@@ -717,6 +826,7 @@ class DeckConfiguration extends Component {
                     <Button
                       title='Back'
                       onPress={() => this.setDeck(null)}
+                      tutorialPhaseStep={tutorialPhase ? tutorialPhase.step : null}
                     />
                   </View>
                 </Animated.View>
@@ -817,7 +927,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 24,
-    padding: 4
+    padding: 6,
+    borderRadius: 6,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   deckContainer: {
     position: 'relative',
@@ -867,3 +980,89 @@ const mapStateToProps = state => ({
 });
 
 export default connect(mapStateToProps, null)(DeckConfiguration);
+
+const GamemodeModal = props => (
+  <CustomAlert
+    title="Select Gamemode"
+  >
+    <Button
+      title="Adventure Mode"
+      style={{ marginBottom: 12 }}
+      charged
+      onPress={() => {
+        socket.emit('adventure.new', selectedDeck, (err) => {
+          if (err) Alert.alert(err);
+          else {
+            const revealSound = new Audio.Sound();
+            revealSound.loadAsync(
+              require('../../assets/audio/ui/revealDeck.mp3'),
+              { shouldPlay: true }
+            );
+            navigationService.navigate('AdventureMode');
+          }
+        });
+      }}
+    />
+    <Button
+      title="Multiplayer"
+      style={{ marginBottom: 12 }}
+      onPress={() => Alert.alert("GearCasters are still hard at training. Opening soon.")}
+    />
+    <Button
+      title="Arena"
+      onPress={() => Alert.alert("Arena is coming soon.")}
+    />
+  </CustomAlert>
+)
+
+const tutorialPhases = {
+  INTRO_EXPLAIN: {
+    step: 'INTRO_EXPLAIN',
+    nextStep: 'INTRO_DECK_CHOOSE',
+    dialogue: {
+      text: 'Here you can view the entire collection you have earned in battle.',
+      align: 'top'
+    }
+  },
+  INTRO_DECK_CHOOSE: {
+    step: 'INTRO_DECK_CHOOSE',
+    dialogue: {
+      text: "Choose the \"Classic\" deck to start configuring it!",
+      align: "bottom"
+    }
+  },
+  PENDING_INTRO_DRAG: {
+    step: 'PENDING_INTRO_DRAG',
+    dialogue: {
+      text: "This is your deck configuration. You can configure your decks for strategic advantages in battle"
+    },
+    nextStep: 'INTRO_DRAG'
+  },
+  INTRO_DRAG: {
+    step: 'INTRO_DRAG',
+    dialogue: {
+      text: "You can add cards from your collection by dragging them into the deck. Try it!"
+    }
+  },
+  INTRO_REMOVE: {
+    step: 'INTRO_REMOVE',
+    dialogue: {
+      text: "You can similarly return cards to your collection by tapping on them in the deck view."
+    },
+    nextStep: 'INTRO_DECK_LIMITS'
+  },
+  INTRO_DECK_LIMITS: {
+    step: 'INTRO_DECK_LIMITS',
+    dialogue: {
+      text: "In order to head out into battle, your deck must have 30-50 cards in total."
+    },
+    nextStep: 'INTRO_PLAY'
+  },
+  INTRO_PLAY: {
+    step: "INTRO_PLAY",
+    dialogue: {
+      text: "Once you feel your deck is ready, you can begin your adventure by clicking 'Resume'. Good luck!"
+    },
+    nextStep: null
+  }
+}

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
   View,
   StyleSheet,
@@ -13,7 +13,7 @@ import navigationService from '../../navigationService';
 import store from '../../store';
 import images from '../../images';
 
-export default class PostDuel extends Component {
+export default class PostDuel extends PureComponent {
   animation = new Animated.Value(0);
   transitionAnim = new Animated.Value(0);
 
@@ -112,9 +112,11 @@ export default class PostDuel extends Component {
                   navigationService.navigate('Landing');
                 } else {
                   if (selfUser.adventureSession) {
-                    navigationService.navigate('AdventureMode');
-                  } else {
-                    navigationService.navigate('DeckConfiguration');
+                    if (selfUser.adventureSession.level === 1) {
+                      navigationService.navigate('DeckConfiguration');
+                    } else {
+                      navigationService.navigate('AdventureMode');
+                    }
                   }
                 }
               }}

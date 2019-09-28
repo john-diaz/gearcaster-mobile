@@ -4,7 +4,9 @@ import {
   StyleSheet,
   ImageBackground,
   Image,
-  Alert
+  Alert,
+  TouchableOpacity,
+  ScrollView
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { connect } from 'react-redux';
@@ -13,16 +15,25 @@ import { CardPack } from '../components/Duel/Card';
 import images from '../images';
 import globalStyles from '../styles';
 import socket from '../socket';
-import { TouchableOpacity, ScrollView } from 'react-native-gesture-handler';
 
 class AdventureMode extends Component {
+  _isfocused = false;
+
   componentDidMount() {
     this.focusSub = this.props.navigation.addListener('willFocus', () => {
+      this._isfocused = true;
       this.checkForLose();
+    });
+    this.blurSub = this.focusSub = this.props.navigation.addListener('willBlur', () => {
+      this._isfocused = false;
     });
   }
   componentWillUnmount() {
     this.focusSub.remove();
+    this.blurSub.remove();
+  }
+  componentDidUpdate(prevProps) {
+    if (this._isfocused) this.checkForLose();
   }
   checkForLose() {
     const { user } = this.props;
@@ -72,7 +83,7 @@ class AdventureMode extends Component {
   render() {
     const adventureSession = this.props.user.adventureSession;
 
-    if (!adventureSession) return <View />
+    if (!adventureSession) return <View style={{ flex: 1, background: 'grey' }}/>
     return (
       <LinearGradient
         style={styles.boardContainer}
@@ -107,10 +118,28 @@ class AdventureMode extends Component {
                   title='Loot'
                   containerStyle={{
                     width: '100%',
-                    maxWidth: 150
+                    maxWidth: 150,
+                    position: 'relative',
+                    overflow: 'visible'
                   }}
                   onPress={() => this.showLootScreen()}
-                />
+                >
+                  <View
+                    style={{
+                      backgroundColor: '#FF3336',
+                      borderColor: '#DBC25E',
+                      borderWidth: 1,
+                      borderRadius: 1,
+                      paddingVertical: 3,
+                      paddingHorizontal: 8,
+                      position: 'absolute',
+                      bottom: -9,
+                      right: -14
+                    }}
+                  >
+                    <Text bold style={{ fontSize: 12 }}>{adventureSession.loot.length}</Text>
+                  </View>
+                </Button>
               </View>
               <View style={{ flex: 1, alignItems: 'stretch' }}>
                 <ImageBackground

@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
-import { View, Animated } from 'react-native';
+import React, { PureComponent } from 'react';
+import { Animated } from 'react-native';
 import { Text } from '../custom';
 
-export default class DeltaBubble extends Component {
+export default class DeltaBubble extends PureComponent {
   _ismounted = false;
   animation = new Animated.Value(0);
 
@@ -11,14 +11,16 @@ export default class DeltaBubble extends Component {
 
     Animated.timing(this.animation, {
       toValue: 1,
-      duration: 100
+      duration: 100,
+      // useNativeDriver: true
     }).start(() => {
       if (!this._ismounted) return;
 
       Animated.timing(this.animation, {
         toValue: 0,
         duration: 100,
-        delay: 700
+        delay: 700,
+        // useNativeDriver: true
       }).start();
     });
   }

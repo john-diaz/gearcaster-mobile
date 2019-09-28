@@ -4,13 +4,16 @@ import {
   Image,
   ImageBackground,
   Alert,
-  AsyncStorage
+  AsyncStorage,
+  TouchableHighlight,
+  Linking
 } from 'react-native';
 import socket from '../socket';
 import { LinearGradient } from 'expo-linear-gradient';
 import { connect } from 'react-redux';
-import { Text, Button } from '../components/custom';
+import { Text, Button, CustomAlert } from '../components/custom';
 import globalStyles from '../styles';
+import { Entypo } from '@expo/vector-icons';
 
 class Landing extends Component {
   enterGame = () => {
@@ -38,6 +41,7 @@ class Landing extends Component {
   signOut = () => {
     AsyncStorage.removeItem('userCredentials').then(() => {
       this.props.dispatch({ type: 'SET_AUTH_STATUS', payload: -1 });
+      this.props.dispatch({ type: 'SET_ALERT', payload: null });
     });
   }
   startTutorialDuel() {
@@ -47,6 +51,8 @@ class Landing extends Component {
     });
   }
   render() {
+    const { user } = this.props;
+
     return(
       <ImageBackground
         source={require('../../assets/img/backgrounds/landscape.png')}
@@ -56,7 +62,8 @@ class Landing extends Component {
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          backgroundColor: 'black'
+          backgroundColor: 'black',
+          padding: 20
         }}
       >
         <LinearGradient
@@ -73,7 +80,6 @@ class Landing extends Component {
             flex: 1,
             width: '100%',
             maxWidth: 750,
-            margin: 20,
             position: 'relative'
           }}
         >
@@ -87,16 +93,54 @@ class Landing extends Component {
               left: 0
             }}
           />
-          { this.props.authStatus === 1 ? <Button
-            style={{
-              ...globalStyles.cobbleBox,
-              position: 'absolute',
-              top: 0,
-              right: 0,
-            }}
-            onPress={this.signOut}
-            title="Sign Out"
-          /> : null }
+          { this.props.authStatus === 1
+            ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'stretch',
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  minWidth: 40,
+                  paddingHorizontal: 15
+                }}
+              >
+                <TouchableHighlight
+                  onPress={() => Linking.openURL("https://discord.gg/BCCb6YG")}
+                >
+                  <View style={{ backgroundColor: '#6e85d3', padding: 10, borderRadius: 10, paddingHorizontal: 14, marginRight: 8 }}>
+                    <Image
+                      source={require('../../assets/img/ui/icons/discord-icon.png')}
+                      style={{ width: 26, height: 18 }}
+                      resizeMode="stretch"
+                    />
+                  </View>
+                </TouchableHighlight>
+                <TouchableHighlight
+                  onPress={() => {
+                    this.props.dispatch({
+                      type: 'SET_ALERT',
+                      payload: {
+                        component: (<SettingsModal signOut={this.signOut} />)
+                      }
+                    })
+                  }}
+                >
+                  <View
+                    style={{...globalStyles.cobbleBox, paddingHorizontal: 14, alignSelf: 'stretch', height: null }}
+                  >
+                    <Entypo
+                      name="cog"
+                      color="white"
+                      size={16}
+                    />
+                  </View>
+                </TouchableHighlight>
+              </View>
+            )
+            : null
+          }
           <View
             style={{
               position: 'absolute',
@@ -117,7 +161,7 @@ class Landing extends Component {
               <Text bold style={{ textAlign: 'center' }}>A fast-paced mechanical card game</Text>
             </View>
             <Button
-              title={this.props.authStatus === 1 ? "ENTER" : "START"}
+              title={this.props.authStatus === 1 ? (user.duelID ? "RESUME" : "ENTER") : "START"}
               onPress={this.props.authStatus === 1 ? this.enterGame : this.startOnboarding}
               style={{
                 minWidth: 193,
@@ -137,3 +181,20 @@ class Landing extends Component {
 const mapStateToProps = state => ({ user: state.user, authStatus: state.authStatus });
 
 export default connect(mapStateToProps, null)(Landing);
+
+const SettingsModal = props => (
+  <CustomAlert
+    title="Main Menu"
+  >
+    <Button
+      title="About GearCaster"
+      onPress={() => Linking.openURL("https://gearcaster.dev/about") }
+      style={{ marginBottom: 12 }}
+    />
+    <Button
+      urgent
+      onPress={() => props.signOut()}
+      title="Reset Progress"
+    />
+  </CustomAlert>
+)

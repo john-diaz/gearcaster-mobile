@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Text, View } from 'react-native';
 import { connect } from 'react-redux';
 
-class AppText extends Component {
+class AppText extends PureComponent {
   render() {
     return(
       <Text

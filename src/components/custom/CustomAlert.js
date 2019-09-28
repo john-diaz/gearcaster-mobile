@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
   View,
   StyleSheet
@@ -6,7 +6,7 @@ import {
 import store from '../../store';
 import { Text, Button } from '.';
 
-export default class CustomAlert extends Component {
+export default class CustomAlert extends PureComponent {
   render() {
     return (
       <View
@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 3
+    borderRadius: 3,
+    paddingHorizontal: 8
   }
 })

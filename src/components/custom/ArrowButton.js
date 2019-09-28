@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
   View,
   TouchableWithoutFeedback,
@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { Audio } from 'expo-av';
 
-export default class ArrowButton extends Component {
+export default class ArrowButton extends PureComponent {
   state = {
     activePress: false
   }

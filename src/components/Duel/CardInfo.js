@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,10 +7,10 @@ import {
 import { Text } from '../custom';
 import globalStyles from '../../styles';
 import { CardBack } from './Card';
-import { capitalize, getRarityColor } from '../../helpers';
+import { getRarityColor } from '../../helpers';
 import { Entypo } from '@expo/vector-icons';
 
-export default class CardInfo extends Component {
+export default class CardInfo extends PureComponent {
   render() {
     const { card, location, resources } = this.props;
     const cost = card.attributes.castCost;
@@ -24,7 +24,7 @@ export default class CardInfo extends Component {
             location === 'hand' || location === 'bench'
               ? {
                   justifyContent: 'flex-start',
-                  top: -140
+                  top: -90
                 }
               : {}
             ),
@@ -38,6 +38,13 @@ export default class CardInfo extends Component {
         }}
       >
         <View style={styles.cardInfo}>
+          {/* card back preview */}
+          <CardBack
+            faction={card.faction}
+            style={{ height: 30, width: 22, position: 'absolute', top: 4, right: 4, zIndex: 10 }}
+            imageStyle={{ height: 30, width: 22, borderWidth: 1, borderRadius: 2 }}
+          />
+
           <Text style={{ fontSize: 14 }} bold>{card.name} {
               card.rarity !== 'common'
                 ? <Text
@@ -91,15 +98,6 @@ export default class CardInfo extends Component {
               : null
           }
           { card.description ? <Text style={{ fontSize: 12, color: '#B3B3B3' }}>{ card.description }</Text> : null }
-          <View
-            style={{ marginTop: 6, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start' }}
-          >
-            <CardBack
-              faction={card.faction}
-              style={{ height: 38, width: 27, marginRight: 4 }}
-              imageStyle={{ height: 38, width: 27, borderWidth: 1, borderRadius: 2 }}
-            />
-          </View>
         </View>
       </Animated.View>
     )
@@ -119,6 +117,7 @@ const styles = StyleSheet.create({
   },
   cardInfo: {
     ...globalStyles.fadedCobblebox,
+    borderRadius: 8,
     padding: 8,
     minWidth: 200,
     borderColor: '#595959',

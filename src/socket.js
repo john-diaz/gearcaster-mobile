@@ -4,7 +4,7 @@ import store from './store';
 import navigationService from './navigationService';
 
 // react native works best with socket.io version 2.1.1 (dont change)
-const socket = io('http://192.168.1.10:3000', {
+const socket = io('https://gearcaster-api.herokuapp.com', {
   jsonp: false,
   transports: ['websocket'],
   autoConnect: false // SOCKET IS INITIATED INSIDE APP.JS

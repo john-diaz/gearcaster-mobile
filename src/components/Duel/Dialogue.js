@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
   View,
   StyleSheet,
@@ -9,11 +9,11 @@ import globalStyles from '../../styles';
 import images from '../../images';
 import { Text, Button } from '../custom';
 
-export default class Dialogue extends Component {
+export default class Dialogue extends PureComponent {
   anim = new Animated.Value(0);
 
   componentDidMount() {
-    Animated.timing(this.anim, { toValue: 1, duration: 1000 }).start();
+    Animated.timing(this.anim, { toValue: 1, duration: 1000, /*useNativeDriver: true, not supported*/ }).start();
   }
   render() {
     return (

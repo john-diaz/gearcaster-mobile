@@ -1,8 +1,28 @@
-import React, { Component } from 'react';
-import { View } from 'react-native';
+import React, { PureComponent } from 'react';
+import { View, TouchableHighlight, Alert } from 'react-native';
 import globalStyles from '../../styles';
+import { Entypo } from '@expo/vector-icons';
+import { CustomAlert, Button } from '../custom';
+import socket from '../../socket';
+import navigationService from '../../navigationService';
+import store from '../../store';
 
-export default class Sidebar extends Component {
+export default class Sidebar extends PureComponent {
+  leaveGame = () => {
+    socket.emit("duel.leave", (err) => {
+      store.dispatch({ type: 'SET_ALERT', payload: null })
+
+      if (err) Alert.alert(err);
+      else {
+        const { game } = this.props;
+        if (game.challenge && game.challenge.botConfig.difficulty === 0) {
+          navigationService.navigate('Landing');
+        } else {
+          navigationService.navigate('AdventureMode')
+        }
+      }
+    })
+  }
   render() {
     return (
       <View
@@ -16,15 +36,29 @@ export default class Sidebar extends Component {
           justifyContent: 'center'
         }}
       >
-        <View
-          style={{
-            ...globalStyles.fadedCobblebox,
-            height: 28,
-            marginBottom: 18
+        <TouchableHighlight
+          onPress={() => {
+            store.dispatch({
+              type: 'SET_ALERT',
+              payload: {
+                component: <SettingsModal leaveGame={this.leaveGame}/>
+              }
+            });
           }}
         >
-
-        </View>
+          <View
+            style={{
+              ...globalStyles.fadedCobblebox,
+              marginBottom: 18
+            }}
+          >
+            <Entypo
+              name="cog"
+              color="white"
+              size={16}
+            />
+          </View>
+        </TouchableHighlight>
         <View
           style={{
             // ...globalStyles.fadedCobblebox,
@@ -38,3 +72,15 @@ export default class Sidebar extends Component {
     )
   }
 }
+
+const SettingsModal = (props) => (
+  <CustomAlert
+    title="Game Menu"
+  >
+    <Button
+      urgent
+      title="Concede"
+      onPress={props.leaveGame}
+    />
+  </CustomAlert>
+)

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
   Image,
   View,
@@ -15,7 +15,7 @@ import { Entypo } from '@expo/vector-icons';
 import globalStyles from '../../styles';
 import DeltaBubble from './DeltaBubble';
 
-export default class Card extends Component {
+export default class Card extends PureComponent {
   _ismounted = false;
   state = {
     panResponder: { panHandlers: {} },
@@ -33,26 +33,25 @@ export default class Card extends Component {
   cardDealAudio = new Audio.Sound();
 
   get shouldRespond() {
-    const { tutorialPhase, card } = this.props;
+    const { tutorialPhaseStep, card } = this.props;
 
-    if (tutorialPhase) console.log('[', card.id,'] - ', tutorialPhase.step);
-
-    if (!tutorialPhase) {
+    if (!tutorialPhaseStep) {
       return true;
     } else {
       // cases where it should allow in the tutorial
       if (
-        ['INTRO_CAST', 'PENDING_CAST'].includes(tutorialPhase.step) &&
+        ['INTRO_CAST', 'PENDING_CAST'].includes(tutorialPhaseStep) &&
         card.id === "Rapid Bot"
       ) { return true }
       else if (
-        ['INTRO_STRENGTH2', 'PENDING_CAST2', 'INTRO_BOOT'].includes(tutorialPhase.step) &&
+        ['INTRO_STRENGTH2', 'PENDING_CAST2', 'INTRO_BOOT'].includes(tutorialPhaseStep) &&
         ["Aluminum Bot", "Minion Bot"].includes(card.id)
       ) { return true }
       else if (
-        ['INTRO_DISCOVERY', 'PENDING_WINGIT'].includes(tutorialPhase.step) &&
+        ['INTRO_DISCOVERY', 'PENDING_WINGIT'].includes(tutorialPhaseStep) &&
         card.id === "Controlled Explosion"
       ) { return true }
+      else if (['INTRO_DRAG', 'INTRO_REMOVE', 'INTRO_DECK_LIMITS'].includes(tutorialPhaseStep)) { return true }
       else // card not allowed in tutorial
       { return false }
     }
@@ -67,7 +66,7 @@ export default class Card extends Component {
 
   setPanResponder(location) {
     const shouldRespond = this.shouldRespond;
-    console.log("SET", shouldRespond)
+    const { tutorialPhaseStep } = this.props;
 
     let panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -75,21 +74,21 @@ export default class Card extends Component {
       onPanResponderGrant: () => {
 
         // DONT allow focusing on the card
-        // IF it should NOT respond, UNLESS tutorialPhase is in 'PENDING'
-        if (!shouldRespond && !this.props.tutorialPhase.step.includes('PENDING')) {
-          return console.log(false);
-        }
+        // IF it should NOT respond, UNLESS tutorialPhaseStep is in 'PENDING'
+        if (!shouldRespond && (tutorialPhaseStep && !tutorialPhaseStep.includes('PENDING'))) return;
 
         this.setState({ focused: true });
         this.state.opacityAnim.setValue(1);
 
         Animated.spring(this.state.scaleAnim, {
           toValue: 1.3,
-          duration: 50
+          duration: 50,
+          // useNativeDriver: true, not supported
         }).start();
         Animated.spring(this.state.descriptionAnim, {
           toValue: 1,
-          duration: 50
+          duration: 50,
+          // useNativeDriver: true, not supported
         }).start();
 
         if (this.props.onPressIn) this.props.onPressIn();
@@ -129,11 +128,13 @@ export default class Card extends Component {
         this.setState({ focused: false });
         Animated.spring(this.state.scaleAnim, {
           toValue: 1,
-          duration: 50
+          duration: 50,
+          // useNativeDriver: true, not supported
         }).start();
         Animated.spring(this.state.descriptionAnim, {
           toValue: 0,
-          duration: 50
+          duration: 50,
+          // useNativeDriver: true, not supported
         }).start();
 
         if (['hand','deck-configuration'].includes(location)) {
@@ -177,11 +178,13 @@ export default class Card extends Component {
       Animated.parallel([
         Animated.timing(this.state.scaleAnim, {
           toValue: 1,
-          duration: 500
+          duration: 500,
+          // useNativeDriver: true
         }),
         Animated.timing(this.state.opacityAnim, {
           toValue: 1,
-          duration: 500
+          duration: 500,
+          // useNativeDriver: true
         })
       ]).start();
     }
@@ -192,7 +195,8 @@ export default class Card extends Component {
         if (!this._ismounted) return;
         Animated.timing(this.state.opacityAnim, {
           toValue: 0,
-          duration: 250
+          duration: 250,
+          // useNativeDriver: true
         }).start();
       }, 4250);
     }
@@ -201,14 +205,16 @@ export default class Card extends Component {
     if (prevProps.isAggro !== this.props.isAggro && this.props.isAggro) {
       Animated.timing(this.state.aggroAnim, {
         toValue: 1,
-        duration: 100
+        duration: 100,
+        // useNativeDriver: true
       }).start(() => {
         if (!this._ismounted) return;
 
         Animated.timing(this.state.aggroAnim, {
           toValue: 0,
           duration: 100,
-          delay: 1200
+          delay: 1200,
+          // useNativeDriver: true
         }).start();
       });
     }
@@ -287,25 +293,22 @@ export default class Card extends Component {
   }
 
   get tutorialArrow() {
-    const { tutorialPhase, card } = this.props;
+    const { tutorialPhaseStep, card } = this.props;
 
-    if (!tutorialPhase) return null;
+    if (!tutorialPhaseStep) return null;
 
-    if (tutorialPhase.step === 'INTRO_CAST' && card.id === "Rapid Bot") {
+    if (tutorialPhaseStep === 'INTRO_CAST' && card.id === "Rapid Bot") {
       return <ArrowButton style={{ position: 'absolute', top: -80, width: 100, zIndex: 100 }} direction='down'/>
     }
-    if (tutorialPhase.step === 'INTRO_DISCOVERY' && card.id === "Controlled Explosion") {
+    if (tutorialPhaseStep === 'INTRO_DISCOVERY' && card.id === "Controlled Explosion") {
       return <ArrowButton style={{ position: 'absolute', top: -80, width: 100, zIndex: 100 }} direction='down'/>
     }
   }
   render() {
-    const { card, location, isAggro, tutorialPhase } = this.props;
+    const { card, location, isAggro, tutorialPhaseStep } = this.props;
     const { aggroAnim, opacityAnim, focused, strengthDelta } = this.state;
 
     if (!card) return <View />;
-    if (!card.attributes) {
-      console.log({ location, card });
-    }
 
     return (
       <Animated.View
@@ -337,20 +340,20 @@ export default class Card extends Component {
         }}
       >
         {/* CARD INFO */}
-        { focused 
+        { focused
             ? <CardInfo
-              card={card}
-              location={location}
-              resources={this.props.user.resources}
-              style={{
-                opacity: this.state.descriptionAnim,
-                scale: this.state.descriptionAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 1.3]
-                }),
-                zIndex: 10
-              }}
-            />
+                card={card}
+                location={location}
+                resources={this.props.user.resources}
+                style={{
+                  opacity: this.state.descriptionAnim,
+                  scale: this.state.descriptionAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 1.3]
+                  }),
+                  zIndex: 10
+                }}
+              />
             : null
         }
 
@@ -425,7 +428,7 @@ export default class Card extends Component {
   }
 }
 
-export class CardBack extends Component {
+export class CardBack extends PureComponent {
   state = {
     fadeinAnim: new Animated.Value(0)
   }
@@ -433,7 +436,8 @@ export class CardBack extends Component {
     Animated.timing(this.state.fadeinAnim, {
       toValue: 1,
       duration: 500,
-      delay: 500
+      delay: 500,
+      // useNativeDriver: true, not supported
     }).start();
   }
   render() {
@@ -460,7 +464,7 @@ export class CardBack extends Component {
   }
 }
 
-export class CardPack extends Component {
+export class CardPack extends PureComponent {
   state = {
     pan: new Animated.ValueXY(),
     scaleAnim: new Animated.Value(1),
@@ -476,7 +480,8 @@ export class CardPack extends Component {
       onPanResponderGrant: () => {
         Animated.spring(this.state.scaleAnim, {
           toValue: 1.3,
-          duration: 50
+          duration: 50,
+          // useNativeDriver: true, not supported
         }).start();
 
         this.props.onPickUp();
@@ -510,7 +515,8 @@ export class CardPack extends Component {
       onPanResponderRelease: () => {
         Animated.spring(this.state.scaleAnim, {
           toValue: 1,
-          duration: 50
+          duration: 50,
+          // useNativeDriver: true, not supported
         }).start();
 
         this.props.onDrop(this.isInDropArea);

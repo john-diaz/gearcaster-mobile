@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
   View,
   StyleSheet,
@@ -14,7 +14,7 @@ import { Audio } from 'expo-av';
 import socket from '../../socket';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default class Shop extends Component {
+export default class Shop extends PureComponent {
   _mounted = false;
   state = {
     selectedDeckName: null,
@@ -42,7 +42,7 @@ export default class Shop extends Component {
     const dollars = Math.floor(cents / 100);
     const remainderCents = cents % 100;
 
-    return `$${dollars}.${remainderCents}`
+    return `${dollars}.${remainderCents}`
   }
   render() {
     const { selectedDeckName, selectedOffer } = this.state;
@@ -291,11 +291,10 @@ const styles = StyleSheet.create({
   }
 });
 
-class AnimatedPack extends Component {
+class AnimatedPack extends PureComponent {
   animation = new Animated.Value(0);
 
   componentDidMount() {
-    const { i } = this.props;
     Animated.timing(this.animation, {
       toValue: 1,
       fromValue: 0,

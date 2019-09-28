@@ -71,7 +71,15 @@ allprojects {
 
     // Want this last so that we never end up with a stale cache
     mavenLocal()
-  }
+  	  
+      	  
+      	maven {
+      	    url "https://sdks.instabug.com/nexus/repository/instabug-cp"
+       	}  
+      	maven {
+      	    url "https://sdks.instabug.com/nexus/repository/instabug-cp"
+       	}  
+      }
 }
 
 task clean(type: Delete) {
