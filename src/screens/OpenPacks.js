@@ -59,6 +59,10 @@ class OpenPacks extends Component {
     this.setState(this.state);
   }
   render() {
+    const { user } = this.props;
+
+    if (!user) return null;
+
     return (
       <ImageBackground
         source={require('../../assets/img/backgrounds/clouds.png')}
@@ -85,10 +89,11 @@ class OpenPacks extends Component {
 
             {/* scroll list */}
             <ScrollView
-              style={{ flex: 1, alignItems: 'center', overflow: 'visible' }}
+              style={{ flex: 1, overflow: 'visible' }}
+              contentContainerStyle={{ alignItems: 'center' }}
             >
               {
-                Object.values(this.props.user.unopenedPacks).map(pack =>
+                Object.values(user.unopenedPacks).map(pack =>
                   <View style={styles.unopenedPackContainer} key={pack.id}>
                     {
                       this.state.hoveringPack !== pack.id
@@ -213,6 +218,7 @@ class OpenPacks extends Component {
                         : (
                           <TouchableOpacity
                             onPress={() => this.revealCard(instanceID)}
+                            key={instanceID}
                           >
                             <CardBack
                               faction={card.faction}

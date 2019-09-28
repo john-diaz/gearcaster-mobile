@@ -21,6 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Shop from '../components/DeckConfiguration/Shop';
 import Dialogue from '../components/Duel/Dialogue';
 import navigationService from '../navigationService';
+import store from '../store';
 
 let rolloverAudio = new Audio.Sound();
 rolloverAudio.loadAsync(require('../../assets/audio/ui/rollover.mp3'));
@@ -49,7 +50,7 @@ class DeckConfiguration extends Component {
     this.willFocusSubscription = this.props.navigation.addListener(
       'willFocus',
       () => {
-        this.setState({ selectedDeck: null });
+        // this.setState({ selectedDeck: null });
         this.loadCollection();
       }
     );
@@ -509,7 +510,7 @@ class DeckConfiguration extends Component {
                     } else if (selectedDeck && user.configuredDecks[selectedDeck].valid) {
                       this.props.dispatch({
                         type: 'SET_ALERT',
-                        payload: { component: <GamemodeModal /> }
+                        payload: { component: <GamemodeModal selectedDeck={selectedDeck}/> }
                       });
                     }
                   }}
@@ -981,7 +982,7 @@ const mapStateToProps = state => ({
 
 export default connect(mapStateToProps, null)(DeckConfiguration);
 
-const GamemodeModal = props => (
+const GamemodeModal = ({ selectedDeck }) => (
   <CustomAlert
     title="Select Gamemode"
   >
@@ -998,6 +999,7 @@ const GamemodeModal = props => (
               require('../../assets/audio/ui/revealDeck.mp3'),
               { shouldPlay: true }
             );
+            store.dispatch({ type: 'SET_ALERT', payload: null });
             navigationService.navigate('AdventureMode');
           }
         });

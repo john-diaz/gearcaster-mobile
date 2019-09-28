@@ -403,14 +403,14 @@ class Duel extends Component {
       toValue: 1,
       duration: 1200,
       friction: 1.2,
-      useNativeDriver: true
+      // useNativeDriver: true
     }).start();
 
     this._userErrorInterval = setTimeout(() => {
       Animated.timing(this.state.userErrorAnimation, {
         toValue: 0,
         duration: 600,
-        useNativeDriver: true
+        // useNativeDriver: true
       }).start(() => {
         if (!this._ismounted) return;
         if (this.state.userError === messageString) {

@@ -51,7 +51,7 @@ export default class Shop extends PureComponent {
       <View style={styles.mainContainer}>
         {/* sidebar */}
         <View style={styles.sideBar}>
-          <ScrollView
+          <View
             style={{
               ...globalStyles.cobbleBox,
               flex: 1,
@@ -94,7 +94,7 @@ export default class Shop extends PureComponent {
                 </TouchableWithoutFeedback>
               )
             }
-          </ScrollView>
+          </View>
           <Button onPress={this.props.onClose} title="Exit" />
         </View>
 

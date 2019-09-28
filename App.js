@@ -49,6 +49,7 @@ const Navigation = createAppContainer(AppNavigator);
 // will persist the navigation state in development mode
 const persistenceKey = "persistenceKey"
 function getPersistenceFunctions() {
+  return undefined;
   return __DEV__ ? {
     async persistNavigationState(navState) {
       try {
