@@ -1,1 +1,0 @@
-../../../../../node_modules/instabug-reactnative/ios/RNInstabug/InstabugChatsBridge.h

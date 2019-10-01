@@ -1,7 +1,5 @@
 import React from 'react';
 import { View, StatusBar, AsyncStorage } from 'react-native';
-// instabug import
-// import Instabug from 'instabug-reactnative';
 // app imports
 import * as Font from 'expo-font';
 import { createStackNavigator, createAppContainer, withNavigation } from 'react-navigation';
@@ -69,13 +67,6 @@ export default class App extends React.Component {
   state = {
     connection: false, // socket.io connection
     authStatus: null
-  }
-  constructor(props) {
-    super(props);
-    if (Platform.OS === 'ios') {
-      // initiate Instabug
-      // Instabug.startWithToken('b8620cc3af18f7e7cd7fd4eebf14e361', [Instabug.invocationEvent.shake]);
-    }
   }
   componentDidMount() {
     console.info('App mounted, connecting socket');

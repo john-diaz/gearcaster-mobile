@@ -7,9 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7486F4CE233D91BB0009AEF8 /* launch_background_image.png in Resources */ = {isa = PBXBuildFile; fileRef = 7486F4CD233D91B90009AEF8 /* launch_background_image.png */; };
-		7C9DE5085D5899454DF5DE99 /* Instabug.framework in Embed Instabug Framework */ = {isa = PBXBuildFile; fileRef = 6E312449DB5F79082937BD05 /* Instabug.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		8BCDC29E94285C3B86F8A2FE /* Instabug.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E312449DB5F79082937BD05 /* Instabug.framework */; };
+		7451B8D72341330A00B0C195 /* launch_background_image.png in Resources */ = {isa = PBXBuildFile; fileRef = 7451B8D62341330900B0C195 /* launch_background_image.png */; };
 		B501732B1DC01252003445D9 /* EXShell.plist in Resources */ = {isa = PBXBuildFile; fileRef = B501732A1DC01252003445D9 /* EXShell.plist */; };
 		B56386491DB9693800A0598C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B56386481DB9693800A0598C /* AppDelegate.m */; };
 		B56386511DB9693800A0598C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B56386501DB9693800A0598C /* Assets.xcassets */; };
@@ -22,34 +20,9 @@
 		EBB8117C1BFA0514F79CAF74 /* libPods-gearcaster-mobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C4A88D15726AD99E8A257BC7 /* libPods-gearcaster-mobile.a */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		3DFE18A36809A24561D5E2CC /* Embed Instabug Framework */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				7C9DE5085D5899454DF5DE99 /* Instabug.framework in Embed Instabug Framework */,
-			);
-			name = "Embed Instabug Framework";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		74354F4D233E85E500F1EA2F /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
 		2C1548D9E4CB1AEFA5CCAE6D /* Pods-gearcaster-mobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-gearcaster-mobile.debug.xcconfig"; path = "Pods/Target Support Files/Pods-gearcaster-mobile/Pods-gearcaster-mobile.debug.xcconfig"; sourceTree = "<group>"; };
-		6E312449DB5F79082937BD05 /* Instabug.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Instabug.framework; path = "../node_modules/instabug-reactnative/ios/Instabug.framework"; sourceTree = "<group>"; };
-		7486F4CD233D91B90009AEF8 /* launch_background_image.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = launch_background_image.png; path = ../../../../../../Desktop/launch_background_image.png; sourceTree = "<group>"; };
+		7451B8D62341330900B0C195 /* launch_background_image.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = launch_background_image.png; path = ../../../../../Desktop/launch_background_image.png; sourceTree = "<group>"; };
 		A47FE4D7F70906B7DC8CE39B /* Pods-gearcaster-mobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-gearcaster-mobile.release.xcconfig"; path = "Pods/Target Support Files/Pods-gearcaster-mobile/Pods-gearcaster-mobile.release.xcconfig"; sourceTree = "<group>"; };
 		B501732A1DC01252003445D9 /* EXShell.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = EXShell.plist; sourceTree = "<group>"; };
 		B56386411DB9693800A0598C /* gearcaster-mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "gearcaster-mobile.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,7 +45,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				EBB8117C1BFA0514F79CAF74 /* libPods-gearcaster-mobile.a in Frameworks */,
-				8BCDC29E94285C3B86F8A2FE /* Instabug.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,7 +55,6 @@
 			isa = PBXGroup;
 			children = (
 				C4A88D15726AD99E8A257BC7 /* libPods-gearcaster-mobile.a */,
-				6E312449DB5F79082937BD05 /* Instabug.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -129,7 +100,7 @@
 		B563865B1DB96A5E00A0598C /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
-				7486F4CD233D91B90009AEF8 /* launch_background_image.png */,
+				7451B8D62341330900B0C195 /* launch_background_image.png */,
 				B5693E8D1FABD16A00307FA4 /* LaunchScreen.xib */,
 				B5DB047E1F3A684600E91581 /* shell-app-manifest.json */,
 				B5DB047F1F3A684600E91581 /* shell-app.bundle */,
@@ -152,15 +123,11 @@
 				23539343DCC44EF8449429EE /* [CP] Check Pods Manifest.lock */,
 				B5722AD01DFB7E3F0084848F /* Prepare Expo */,
 				B563863D1DB9693800A0598C /* Sources */,
-				B563863E1DB9693800A0598C /* Frameworks */,
 				B563863F1DB9693800A0598C /* Resources */,
 				AA38385B7D8D0854176B72FC /* [CP] Copy Pods Resources */,
 				19D233B7204FDD7D0087ED51 /* Bundle Expo Assets */,
-				74354F4D233E85E500F1EA2F /* Embed Frameworks */,
-				3DFE18A36809A24561D5E2CC /* Embed Instabug Framework */,
-				4AC073AA2CF43CCCEAF6C10E /* Strip Frameworks */,
-				7A611D12285F0B028077320F /* Upload Sourcemap */,
-				6823F12B79C068A16025AE6A /* [CP] Embed Pods Frameworks */,
+				B563863E1DB9693800A0598C /* Frameworks */,
+				74ABF625234177EF0020B003 /* Fabric.io */,
 			);
 			buildRules = (
 			);
@@ -177,7 +144,7 @@
 		B56386391DB9693800A0598C /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = "650 Industries, Inc.";
 				TargetAttributes = {
 					B56386401DB9693800A0598C = {
@@ -211,8 +178,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B501732B1DC01252003445D9 /* EXShell.plist in Resources */,
+				7451B8D72341330A00B0C195 /* launch_background_image.png in Resources */,
 				B5CFBF4F1EDE419400B4BE24 /* EXBuildConstants.plist in Resources */,
-				7486F4CE233D91BB0009AEF8 /* launch_background_image.png in Resources */,
 				B56386671DB9994300A0598C /* EXSDKVersions.plist in Resources */,
 				B5693E8E1FABD16A00307FA4 /* LaunchScreen.xib in Resources */,
 				B5DB04801F3A684600E91581 /* shell-app-manifest.json in Resources */,
@@ -256,7 +223,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		4AC073AA2CF43CCCEAF6C10E /* Strip Frameworks */ = {
+		74ABF625234177EF0020B003 /* Fabric.io */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -264,51 +231,16 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)",
 			);
-			name = "Strip Frameworks";
+			name = Fabric.io;
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "bash \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/Instabug.framework/strip-frameworks.sh\"\n";
-		};
-		6823F12B79C068A16025AE6A /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-gearcaster-mobile/Pods-gearcaster-mobile-frameworks.sh",
-				"${PODS_ROOT}/../../node_modules/instabug-reactnative/ios/Instabug.framework",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Instabug.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-gearcaster-mobile/Pods-gearcaster-mobile-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		7A611D12285F0B028077320F /* Upload Sourcemap */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Upload Sourcemap";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-			shellPath = /bin/sh;
-			shellScript = "bash \"../node_modules/instabug-reactnative/ios/upload_sourcemap.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Fabric/run\" a8fdf96677b7f9c57d7674ddee5661dd4a7e756f e93e2863f047f400f89608087387e8ad3e71e8302140312596edd0f6236452f9\n";
 		};
 		AA38385B7D8D0854176B72FC /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -382,6 +314,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -389,6 +322,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -438,6 +372,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -445,6 +380,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -480,14 +416,91 @@
 			baseConfigurationReference = 2C1548D9E4CB1AEFA5CCAE6D /* Pods-gearcaster-mobile.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 4FWUD5XR3R;
-				FRAMEWORK_SEARCH_PATHS = (
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"../node_modules/instabug-reactnative/ios",
+					"\"${PODS_ROOT}/Headers/Public\"",
+					"\"${PODS_ROOT}/Headers/Public/Amplitude-iOS\"",
+					"\"${PODS_ROOT}/Headers/Public/Analytics\"",
+					"\"${PODS_ROOT}/Headers/Public/AppAuth\"",
+					"\"${PODS_ROOT}/Headers/Public/Bolts\"",
+					"\"${PODS_ROOT}/Headers/Public/Branch\"",
+					"\"${PODS_ROOT}/Headers/Public/CocoaLumberjack\"",
+					"\"${PODS_ROOT}/Headers/Public/DoubleConversion\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAV\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAdsAdMob\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAdsFacebook\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAmplitude\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAppAuth\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAppLoaderProvider\"",
+					"\"${PODS_ROOT}/Headers/Public/EXBackgroundFetch\"",
+					"\"${PODS_ROOT}/Headers/Public/EXBarCodeScanner\"",
+					"\"${PODS_ROOT}/Headers/Public/EXBlur\"",
+					"\"${PODS_ROOT}/Headers/Public/EXBrightness\"",
+					"\"${PODS_ROOT}/Headers/Public/EXCalendar\"",
+					"\"${PODS_ROOT}/Headers/Public/EXCamera\"",
+					"\"${PODS_ROOT}/Headers/Public/EXConstants\"",
+					"\"${PODS_ROOT}/Headers/Public/EXContacts\"",
+					"\"${PODS_ROOT}/Headers/Public/EXCrypto\"",
+					"\"${PODS_ROOT}/Headers/Public/EXDocumentPicker\"",
+					"\"${PODS_ROOT}/Headers/Public/EXFacebook\"",
+					"\"${PODS_ROOT}/Headers/Public/EXFileSystem\"",
+					"\"${PODS_ROOT}/Headers/Public/EXFont\"",
+					"\"${PODS_ROOT}/Headers/Public/EXGL\"",
+					"\"${PODS_ROOT}/Headers/Public/EXGL-CPP\"",
+					"\"${PODS_ROOT}/Headers/Public/EXGoogleSignIn\"",
+					"\"${PODS_ROOT}/Headers/Public/EXHaptics\"",
+					"\"${PODS_ROOT}/Headers/Public/EXImageManipulator\"",
+					"\"${PODS_ROOT}/Headers/Public/EXImagePicker\"",
+					"\"${PODS_ROOT}/Headers/Public/EXKeepAwake\"",
+					"\"${PODS_ROOT}/Headers/Public/EXLinearGradient\"",
+					"\"${PODS_ROOT}/Headers/Public/EXLocalAuthentication\"",
+					"\"${PODS_ROOT}/Headers/Public/EXLocalization\"",
+					"\"${PODS_ROOT}/Headers/Public/EXLocation\"",
+					"\"${PODS_ROOT}/Headers/Public/EXMailComposer\"",
+					"\"${PODS_ROOT}/Headers/Public/EXMediaLibrary\"",
+					"\"${PODS_ROOT}/Headers/Public/EXPermissions\"",
+					"\"${PODS_ROOT}/Headers/Public/EXPrint\"",
+					"\"${PODS_ROOT}/Headers/Public/EXRandom\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSMS\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSQLite\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSecureStore\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSegment\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSensors\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSharing\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSpeech\"",
+					"\"${PODS_ROOT}/Headers/Public/EXTaskManager\"",
+					"\"${PODS_ROOT}/Headers/Public/EXWebBrowser\"",
+					"\"${PODS_ROOT}/Headers/Public/ExpoKit\"",
+					"\"${PODS_ROOT}/Headers/Public/FBSDKCoreKit\"",
+					"\"${PODS_ROOT}/Headers/Public/FBSDKLoginKit\"",
+					"\"${PODS_ROOT}/Headers/Public/GTMSessionFetcher\"",
+					"\"${PODS_ROOT}/Headers/Public/Google-Maps-iOS-Utils\"",
+					"\"${PODS_ROOT}/Headers/Public/GoogleToolboxForMac\"",
+					"\"${PODS_ROOT}/Headers/Public/JKBigInteger2\"",
+					"\"${PODS_ROOT}/Headers/Public/React\"",
+					"\"${PODS_ROOT}/Headers/Public/UMBarCodeScannerInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMCameraInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMConstantsInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMCore\"",
+					"\"${PODS_ROOT}/Headers/Public/UMFaceDetectorInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMFileSystemInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMFontInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMImageLoaderInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMPermissionsInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMReactNativeAdapter\"",
+					"\"${PODS_ROOT}/Headers/Public/UMSensorsInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMTaskManagerInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/glog\"",
+					"\"${PODS_ROOT}/Headers/Public/lottie-ios\"",
+					"\"${PODS_ROOT}/Headers/Public/yoga\"",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/gearcaster-mobile/Supporting/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = gearcaster;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.gearcaster.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -498,14 +511,90 @@
 			baseConfigurationReference = A47FE4D7F70906B7DC8CE39B /* Pods-gearcaster-mobile.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 4FWUD5XR3R;
-				FRAMEWORK_SEARCH_PATHS = (
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"../node_modules/instabug-reactnative/ios",
+					"\"${PODS_ROOT}/Headers/Public\"",
+					"\"${PODS_ROOT}/Headers/Public/Amplitude-iOS\"",
+					"\"${PODS_ROOT}/Headers/Public/Analytics\"",
+					"\"${PODS_ROOT}/Headers/Public/AppAuth\"",
+					"\"${PODS_ROOT}/Headers/Public/Bolts\"",
+					"\"${PODS_ROOT}/Headers/Public/Branch\"",
+					"\"${PODS_ROOT}/Headers/Public/CocoaLumberjack\"",
+					"\"${PODS_ROOT}/Headers/Public/DoubleConversion\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAV\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAdsAdMob\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAdsFacebook\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAmplitude\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAppAuth\"",
+					"\"${PODS_ROOT}/Headers/Public/EXAppLoaderProvider\"",
+					"\"${PODS_ROOT}/Headers/Public/EXBackgroundFetch\"",
+					"\"${PODS_ROOT}/Headers/Public/EXBarCodeScanner\"",
+					"\"${PODS_ROOT}/Headers/Public/EXBlur\"",
+					"\"${PODS_ROOT}/Headers/Public/EXBrightness\"",
+					"\"${PODS_ROOT}/Headers/Public/EXCalendar\"",
+					"\"${PODS_ROOT}/Headers/Public/EXCamera\"",
+					"\"${PODS_ROOT}/Headers/Public/EXConstants\"",
+					"\"${PODS_ROOT}/Headers/Public/EXContacts\"",
+					"\"${PODS_ROOT}/Headers/Public/EXCrypto\"",
+					"\"${PODS_ROOT}/Headers/Public/EXDocumentPicker\"",
+					"\"${PODS_ROOT}/Headers/Public/EXFacebook\"",
+					"\"${PODS_ROOT}/Headers/Public/EXFileSystem\"",
+					"\"${PODS_ROOT}/Headers/Public/EXFont\"",
+					"\"${PODS_ROOT}/Headers/Public/EXGL\"",
+					"\"${PODS_ROOT}/Headers/Public/EXGL-CPP\"",
+					"\"${PODS_ROOT}/Headers/Public/EXGoogleSignIn\"",
+					"\"${PODS_ROOT}/Headers/Public/EXHaptics\"",
+					"\"${PODS_ROOT}/Headers/Public/EXImageManipulator\"",
+					"\"${PODS_ROOT}/Headers/Public/EXImagePicker\"",
+					"\"${PODS_ROOT}/Headers/Public/EXKeepAwake\"",
+					"\"${PODS_ROOT}/Headers/Public/EXLinearGradient\"",
+					"\"${PODS_ROOT}/Headers/Public/EXLocalAuthentication\"",
+					"\"${PODS_ROOT}/Headers/Public/EXLocalization\"",
+					"\"${PODS_ROOT}/Headers/Public/EXLocation\"",
+					"\"${PODS_ROOT}/Headers/Public/EXMailComposer\"",
+					"\"${PODS_ROOT}/Headers/Public/EXMediaLibrary\"",
+					"\"${PODS_ROOT}/Headers/Public/EXPermissions\"",
+					"\"${PODS_ROOT}/Headers/Public/EXPrint\"",
+					"\"${PODS_ROOT}/Headers/Public/EXRandom\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSMS\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSQLite\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSecureStore\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSegment\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSensors\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSharing\"",
+					"\"${PODS_ROOT}/Headers/Public/EXSpeech\"",
+					"\"${PODS_ROOT}/Headers/Public/EXTaskManager\"",
+					"\"${PODS_ROOT}/Headers/Public/EXWebBrowser\"",
+					"\"${PODS_ROOT}/Headers/Public/ExpoKit\"",
+					"\"${PODS_ROOT}/Headers/Public/FBSDKCoreKit\"",
+					"\"${PODS_ROOT}/Headers/Public/FBSDKLoginKit\"",
+					"\"${PODS_ROOT}/Headers/Public/GTMSessionFetcher\"",
+					"\"${PODS_ROOT}/Headers/Public/Google-Maps-iOS-Utils\"",
+					"\"${PODS_ROOT}/Headers/Public/GoogleToolboxForMac\"",
+					"\"${PODS_ROOT}/Headers/Public/JKBigInteger2\"",
+					"\"${PODS_ROOT}/Headers/Public/React\"",
+					"\"${PODS_ROOT}/Headers/Public/UMBarCodeScannerInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMCameraInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMConstantsInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMCore\"",
+					"\"${PODS_ROOT}/Headers/Public/UMFaceDetectorInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMFileSystemInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMFontInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMImageLoaderInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMPermissionsInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMReactNativeAdapter\"",
+					"\"${PODS_ROOT}/Headers/Public/UMSensorsInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/UMTaskManagerInterface\"",
+					"\"${PODS_ROOT}/Headers/Public/glog\"",
+					"\"${PODS_ROOT}/Headers/Public/lottie-ios\"",
+					"\"${PODS_ROOT}/Headers/Public/yoga\"",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/gearcaster-mobile/Supporting/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = gearcaster;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.gearcaster.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = 1;
 			};

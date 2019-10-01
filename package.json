@@ -14,7 +14,6 @@
     "expo-font": "^5.0.1",
     "expo-linear-gradient": "^5.0.1",
     "expokit": "^33.0.4",
-    "instabug-reactnative": "^8.7.0",
     "react": "16.8.3",
     "react-native": "https://github.com/expo/react-native/archive/sdk-33.0.0.tar.gz",
     "react-native-unimodules": "^0.4.2",

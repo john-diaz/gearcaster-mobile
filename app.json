@@ -24,7 +24,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "gearcaster",
+      "bundleIdentifier": "dev.gearcaster.mobile",
       "publishBundlePath": "ios/gearcaster-mobile/Supporting/shell-app.bundle",
       "publishManifestPath": "ios/gearcaster-mobile/Supporting/shell-app-manifest.json"
     },

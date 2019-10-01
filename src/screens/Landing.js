@@ -192,6 +192,11 @@ const SettingsModal = props => (
       style={{ marginBottom: 12 }}
     />
     <Button
+      title="Donate"
+      onPress={() => Linking.openURL("https://paypal.me/gearcaster") }
+      style={{ marginBottom: 12 }}
+    />
+    <Button
       urgent
       onPress={() => props.signOut()}
       title="Reset Progress"

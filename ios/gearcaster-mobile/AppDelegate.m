@@ -1,11 +1,14 @@
 // Copyright 2015-present 650 Industries. All rights reserved.
 
 #import "AppDelegate.h"
+//#import <Fabric/Fabric.h>
+//#import <Crashlytics/Crashytics.h>
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+//  [Fabric with:@[[Crashlytics class]]];
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 

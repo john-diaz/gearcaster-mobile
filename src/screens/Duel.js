@@ -44,7 +44,6 @@ class Duel extends Component {
     userErrorAnimation: new Animated.Value(0), // animation for user error
     userError: null
   }
-  newDeckAudio = new Audio.Sound();
 
   componentDidMount() {
     this._ismounted = true;
@@ -123,19 +122,6 @@ class Duel extends Component {
 
     const { game, privateData } = this.state;
     const computedDuel = game ? this.computedDuel : null;
-
-    // compare selfPlayer.benches to play change sound effect
-    if (
-      game && computedDuel &&
-      prevState.privateData.bench && privateData.bench
-    ) {
-      const currentHand = privateData.hand.map(c => c.instanceID);
-      const previousHand = prevState.privateData.hand.map(c => c.instanceID);
-  
-      if (!arraysEqual(currentHand, previousHand)) {
-        this.newDeckAudio.playFromPositionAsync(0);
-      }
-    }
 
     // check for game finished
     if (game && computedDuel && (computedDuel.finished && !this.state.finishedInfo)) {
@@ -328,15 +314,9 @@ class Duel extends Component {
       require('../../assets/audio/ui/botActive8.mp3'),
     ]
     const selectedSound = bootingSounds[Math.floor(Math.random() * bootingSounds.length - 1)];
-    const audio = new Audio.Sound();
-    audio.loadAsync(selectedSound).then(() => {
-      audio.playAsync();
-    });
 
-    const damageAudio = new Audio.Sound();
-    damageAudio.loadAsync(require('../../assets/audio/ui/damage.mp3')).then(() => {
-      damageAudio.playAsync();
-    });
+    new Audio.Sound().loadAsync(selectedSound, { shouldPlay: true });
+    new Audio.Sound().loadAsync(require('../../assets/audio/ui/damage.mp3'), { shouldPlay: true });
   }
   get computedDuel() {
     return this.state.virtualDuel ? this.state.virtualDuel : this.state.game.duel;

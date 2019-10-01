@@ -21,7 +21,7 @@ export default class CardInfo extends PureComponent {
           ...styles.cardInfoContainer,
           ...this.props.style,
           ...(
-            location === 'hand' || location === 'bench'
+            location === 'hand'
               ? {
                   justifyContent: 'flex-start',
                   top: -90
@@ -29,8 +29,9 @@ export default class CardInfo extends PureComponent {
               : {}
             ),
           ...(
-            location === 'collection'
+            location === 'collection' || location === 'bench'
             ? {
+              top: -60,
               right: -100
             }
             : {}

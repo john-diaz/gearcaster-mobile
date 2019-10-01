@@ -424,7 +424,7 @@ class DeckConfiguration extends Component {
                 }}
               >
                 <Button
-                  title="Back"
+                  title="Home"
                   stoneContainer
                   urgent
                   containerStyle={{

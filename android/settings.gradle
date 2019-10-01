@@ -1,6 +1,4 @@
 include ':app'
-include ':instabug-reactnative'
-project(':instabug-reactnative').projectDir = new File(rootProject.projectDir, '../node_modules/instabug-reactnative/android')
 
 
 // Import gradle helpers for unimodules.
